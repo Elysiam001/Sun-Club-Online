@@ -375,7 +375,7 @@ socket.on('taixiuTick', (data) => {
             currentPhase = 'result';
             currentResultDices = data.dices;
             currentResultTotal = data.dices[0] + data.dices[1] + data.dices[2];
-            startOpeningBowl();
+            startRealisticRoll(data.dices); // Gọi đúng hàm để quay xúc xắc và úp bát
         }
     }
 });
