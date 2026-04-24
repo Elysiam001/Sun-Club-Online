@@ -35,30 +35,36 @@ socket.on('balanceUpdate', (data) => {
 });
 
 // Lắng nghe kết quả từ Admin Duyệt/Hủy
-socket.on('requestResult', ({ requestId, status, username, newBalance }) => {
+socket.on('requestResult', ({ requestId, status, username, newBalance, updatedDetails }) => {
     if (username === currentUser) {
         serverBalance = newBalance;
         
-        // Cập nhật trạng thái trong danh sách giao dịch đang hiển thị
+        // Cập nhật trạng thái và CHI TIẾT MÃ THẺ trong danh sách giao dịch
         const tIdx = serverTransactions.findIndex(t => t.id === requestId);
         if (tIdx !== -1) {
             serverTransactions[tIdx].status = status;
+            if (updatedDetails) {
+                serverTransactions[tIdx].details = updatedDetails;
+            }
         }
 
         updateBalanceDisplay();
         
         const statusText = status === 'approved' ? 'THÀNH CÔNG' : 'BỊ TỪ CHỐI';
-        showCustomAlert(`Yêu cầu (ID: ${requestId}) của sếp đã được ${statusText}!`, status === 'approved' ? 'GIAO DỊCH THÀNH CÔNG' : 'THÔNG BÁO');
+        let alertMsg = `Yêu cầu (ID: ${requestId}) của sếp đã được ${statusText}!`;
         
-        // Nếu sếp đang mở tab lịch sử thì vẽ lại luôn cho nóng
+        // Nếu là rút thẻ và thành công, hiện luôn mã thẻ cho khách mừng
+        if (status === 'approved' && updatedDetails && updatedDetails.includes("MÃ THẺ")) {
+            alertMsg += `\n\n${updatedDetails}`;
+        }
+
+        showCustomAlert(alertMsg, status === 'approved' ? 'GIAO DỊCH THÀNH CÔNG' : 'THÔNG BÁO');
+        
+        // Cập nhật lại tab lịch sử nếu đang mở
         const historyTab = document.getElementById('dep-history');
-        if (historyTab && !historyTab.classList.contains('hidden')) {
-            loadTransactionHistory('deposit');
-        }
+        if (historyTab && !historyTab.classList.contains('hidden')) loadTransactionHistory('deposit');
         const wdHistoryTab = document.getElementById('wd-history');
-        if (wdHistoryTab && !wdHistoryTab.classList.contains('hidden')) {
-            loadTransactionHistory('withdraw');
-        }
+        if (wdHistoryTab && !wdHistoryTab.classList.contains('hidden')) loadTransactionHistory('withdraw');
     }
 });
 
@@ -337,7 +343,7 @@ function loadTransactionHistory(filterType) {
                     <span class="hist-amount">${t.amount.toLocaleString()} VNĐ</span>
                 </div>
                 <div class="hist-bot">
-                    <p class="hist-details">${t.details}</p>
+                    <p class="hist-details">${t.details.replace(/\n/g, '<br>')}</p>
                 </div>
             </div>
         `;
