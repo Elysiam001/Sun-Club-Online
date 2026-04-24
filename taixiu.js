@@ -319,26 +319,27 @@ socket.emit('taixiuJoin');
 let lastPhase = ''; 
 
 socket.on('taixiuTick', (data) => {
-    // Cập nhật Timer
-    const timerEl = document.getElementById('countdown-timer');
-    if (timerEl) timerEl.textContent = data.timer;
+    // 1. Cập nhật Timer
+    const timerDisplay = document.getElementById('countdown-timer');
+    if (timerDisplay) timerDisplay.textContent = data.timer;
     
-    // Cập nhật số liệu ảo
-    const usersTaiEl = document.getElementById('users-tai');
-    const usersXiuEl = document.getElementById('users-xiu');
-    const poolTaiEl = document.getElementById('tai-total-pool');
-    const poolXiuEl = document.getElementById('xiu-total-pool');
+    // 2. Cập nhật số liệu ảo (Chỉ cập nhật khi đang trong giai đoạn cược)
+    if (data.phase === 'betting') {
+        const usersTaiEl = document.getElementById('users-tai');
+        const usersXiuEl = document.getElementById('users-xiu');
+        const poolTaiEl = document.getElementById('tai-total-pool');
+        const poolXiuEl = document.getElementById('xiu-total-pool');
 
-    if (usersTaiEl && data.fakeTai) usersTaiEl.innerHTML = `<i class="fa-solid fa-users"></i> ${data.fakeTai.users.toLocaleString()}`;
-    if (usersXiuEl && data.fakeXiu) usersXiuEl.innerHTML = `<i class="fa-solid fa-users"></i> ${data.fakeXiu.users.toLocaleString()}`;
-    if (poolTaiEl && data.fakeTai) poolTaiEl.textContent = data.fakeTai.pool.toLocaleString();
-    if (poolXiuEl && data.fakeXiu) poolXiuEl.textContent = data.fakeXiu.pool.toLocaleString();
+        if (usersTaiEl && data.fakeTai) usersTaiEl.innerHTML = `<i class="fa-solid fa-users"></i> ${data.fakeTai.users.toLocaleString()}`;
+        if (usersXiuEl && data.fakeXiu) usersXiuEl.innerHTML = `<i class="fa-solid fa-users"></i> ${data.fakeXiu.users.toLocaleString()}`;
+        if (poolTaiEl && data.fakeTai) poolTaiEl.textContent = data.fakeTai.pool.toLocaleString();
+        if (poolXiuEl && data.fakeXiu) poolXiuEl.textContent = data.fakeXiu.pool.toLocaleString();
+    }
 
-    // Đồng bộ giai đoạn game
+    // 3. Đồng bộ giai đoạn game
     if (data.phase !== lastPhase) {
         lastPhase = data.phase;
         if (data.phase === 'betting') {
-            // Bắt đầu ván mới: Reset UI, ẩn xúc xắc
             currentPhase = 'betting';
             diceScene.classList.add('hidden');
             bowl.classList.add('hidden');
@@ -346,10 +347,9 @@ socket.on('taixiuTick', (data) => {
             document.getElementById('side-xiu').classList.remove('winner-blink');
             resetBets();
         } else if (data.phase === 'result') {
-            // Mở bát: Hiện xúc xắc, nặn bát
             currentPhase = 'result';
             currentResultDices = data.dices;
-            currentResultTotal = data.dices[0] + data.dices[1] + data.dices[2];
+            currentResultTotal = data.dices[0] + data.dices[1] + data.dices[2]; // Phải tính tổng ở đây
             startOpeningBowl();
         }
     }
@@ -394,20 +394,16 @@ function toggleChat() {
 
 function addChatMessage(username, message, isSystem = false) {
     const msgArea = document.getElementById('chat-messages');
-    const item = document.createElement('div');
-    item.className = `chat-item ${isSystem ? 'system' : ''}`;
+    if (!msgArea) return;
     
-    if (isSystem) {
-        item.textContent = message;
-    } else {
-        item.innerHTML = `<span class="username">${username}:</span> ${message}`;
-    }
+    const html = isSystem 
+        ? `<div class="chat-item system">${message}</div>`
+        : `<div class="chat-item"><span class="username">${username}:</span> ${message}</div>`;
     
-    msgArea.appendChild(item);
+    msgArea.insertAdjacentHTML('beforeend', html);
     msgArea.scrollTop = msgArea.scrollHeight;
     
-    // Giới hạn 50 tin nhắn cho đỡ nặng
-    if (msgArea.children.length > 50) msgArea.removeChild(msgArea.firstChild);
+    if (msgArea.children.length > 30) msgArea.removeChild(msgArea.firstChild);
 }
 
 document.getElementById('btn-send-chat').addEventListener('click', sendMyChat);
