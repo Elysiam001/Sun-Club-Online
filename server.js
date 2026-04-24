@@ -191,18 +191,134 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Thắng/Thua Tài Xỉu
-    socket.on('updateBalance', async ({ username, newBalance }) => {
-        const user = await User.findOne({ username });
-        if (user) {
-            user.balance = parseInt(newBalance);
-            await user.save();
-            io.emit('balanceUpdate', { username, newBalance });
-        }
+    socket.on('disconnect', () => {});
+
+    // --- LOGIC TÀI XỈU TẬP TRUNG (SERVER-SIDE) ---
+    socket.on('taixiuJoin', () => {
+        socket.emit('taixiuState', taixiuState);
     });
 
-    socket.on('disconnect', () => {});
+    socket.on('taixiuBet', async ({ username, side, amount }) => {
+        if (taixiuState.phase !== 'betting') return;
+        
+        const user = await User.findOne({ username });
+        if (user && user.balance >= amount) {
+            user.balance -= amount;
+            await user.save();
+
+            // Lưu cược vào Server
+            if (!taixiuState.bets[username]) {
+                taixiuState.bets[username] = { tai: 0, xiu: 0 };
+            }
+            taixiuState.bets[username][side] += amount;
+            taixiuState.totalPool[side] += amount;
+            taixiuState.totalUsers[side]++;
+
+            socket.emit('balanceUpdate', { username, newBalance: user.balance });
+            socket.emit('taixiuBetSuccess', { side, amount });
+            
+            // Cập nhật pool cho tất cả mọi người thấy tiền đang nhảy
+            io.emit('taixiuPoolUpdate', taixiuState.totalPool);
+        } else {
+            socket.emit('taixiuError', 'Số dư không đủ!');
+        }
+    });
 });
+
+// --- QUẢN LÝ GAME TÀI XỈU (VÒNG LẶP VĨNH CỬU) ---
+let taixiuState = {
+    timer: 25,
+    phase: 'betting', // 'betting', 'result'
+    dices: [1, 1, 1],
+    totalPool: { tai: 0, xiu: 0 },
+    totalUsers: { tai: 0, xiu: 0 },
+    bets: {}, // { username: { tai: 0, xiu: 0 } }
+    history: []
+};
+
+function taixiuLoop() {
+    taixiuState.timer--;
+
+    if (taixiuState.timer <= 0) {
+        if (taixiuState.phase === 'betting') {
+            // Chuyển sang giai đoạn kết quả
+            taixiuState.phase = 'result';
+            taixiuState.timer = 15; // 15 giây chờ kết quả và reset
+
+            // Quay xúc xắc
+            taixiuState.dices = [
+                Math.floor(Math.random() * 6) + 1,
+                Math.floor(Math.random() * 6) + 1,
+                Math.floor(Math.random() * 6) + 1
+            ];
+
+            const total = taixiuState.dices[0] + taixiuState.dices[1] + taixiuState.dices[2];
+            const isTai = total >= 11;
+            const isXiu = total <= 10;
+
+            // Tính toán trả thưởng
+            processWinners(isTai, isXiu, total);
+
+            // Gửi kết quả cho tất cả mọi người
+            io.emit('taixiuResult', {
+                dices: taixiuState.dices,
+                total: total,
+                isTai: isTai
+            });
+
+            // Lưu lịch sử
+            taixiuState.history.push({ total, isTai });
+            if (taixiuState.history.length > 20) taixiuState.history.shift();
+
+        } else {
+            // Reset ván mới
+            taixiuState.phase = 'betting';
+            taixiuState.timer = 25;
+            taixiuState.totalPool = { tai: 0, xiu: 0 };
+            taixiuState.totalUsers = { tai: 0, xiu: 0 };
+            taixiuState.bets = {};
+            io.emit('taixiuReset', taixiuState);
+        }
+    }
+
+    // Gửi giây đếm ngược cho tất cả máy khách
+    io.emit('taixiuTick', {
+        timer: taixiuState.timer,
+        phase: taixiuState.phase,
+        totalPool: taixiuState.totalPool,
+        totalUsers: taixiuState.totalUsers
+    });
+}
+
+async function processWinners(isTai, isXiu, total) {
+    const winningSide = isTai ? 'tai' : (isXiu ? 'xiu' : null);
+    
+    for (let username in taixiuState.bets) {
+        const userBets = taixiuState.bets[username];
+        let winAmount = 0;
+
+        if (winningSide && userBets[winningSide] > 0) {
+            winAmount = userBets[winningSide] * 2;
+        }
+
+        if (winAmount > 0) {
+            try {
+                const user = await User.findOne({ username });
+                if (user) {
+                    user.balance += winAmount;
+                    await user.save();
+                    // Thông báo riêng cho người thắng
+                    io.emit('balanceUpdate', { username, newBalance: user.balance });
+                    io.emit('taixiuWin', { username, winAmount });
+                }
+            } catch (err) {
+                console.error('Lỗi trả thưởng:', err);
+            }
+        }
+    }
+}
+
+setInterval(taixiuLoop, 1000);
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
