@@ -247,6 +247,12 @@ socket.on('taixiuTick', (data) => {
         timerDisplay.classList.remove('hidden');
         timerDisplay.textContent = data.timer;
         
+        // Dọn sạch bàn chơi cho ván mới
+        diceScene.classList.add('hidden');
+        bowl.classList.add('hidden');
+        document.getElementById('side-tai').classList.remove('winner-blink');
+        document.getElementById('side-xiu').classList.remove('winner-blink');
+        
         // Cập nhật Pool tiền từ Server
         document.getElementById('tai-total-pool').textContent = data.totalPool.tai.toLocaleString('vi-VN');
         document.getElementById('xiu-total-pool').textContent = data.totalPool.xiu.toLocaleString('vi-VN');
