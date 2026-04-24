@@ -425,11 +425,22 @@ function sendMyChat() {
 }
 
 // --- HỆ THỐNG CHIM MỒI (FAKE CHAT) SIÊU CẤP ---
-const fakeNames = [
-    'Trùm Tài Xỉu', 'BeHeo9x', 'Thần Bài', 'Đại Gia Phố Núi', 'Kiếm Thế', 'Công Tử Bạc Liêu', 'Gà Con', 'Sói Độc Hành',
-    'Lô Đề Học', 'Bắc Kim Thang', 'Hắc Bạch Công Tử', 'Kiều Nữ', 'Sát Thủ Vô Tình', 'Tài Xỉu 88', 'Về Bờ Uy Tín', 'Kéo 1-1',
-    'Thánh Soi Cầu', 'Nhà Cái Đến Từ Châu Âu', 'Tiền Là Giấy', 'Nợ Như Chúa Chổm', 'Tay Trắng Làm Nên', 'Đại Ca Chợ Lớn'
-];
+function generateRandomName() {
+    const prefixes = ['anh', 'boy', 'ga', 'trum', 'thanh', 'be', 'cong_tu', 'hiep_si', 'sat_thu', 'dai_gia', 'dan_choi', 'co_nang'];
+    const names = ['tuan', 'hung', 'linh', 'lan', 'duong', 'vinh', 'nam', 'phong', 'thuy', 'mai', 'kien', 'hoang', 'dung', 'thanh', 'huyen'];
+    const suffixes = ['_9x', '_2k', '_pro', '_vip', '_hanoi', '_baby', '_cute', '_bua', '_hack', '_vobo', '_88', '_99', 'dz', 'kkk'];
+    
+    const p = prefixes[Math.floor(Math.random() * prefixes.length)];
+    const n = names[Math.floor(Math.random() * names.length)];
+    const s = suffixes[Math.floor(Math.random() * suffixes.length)];
+    const r = Math.floor(Math.random() * 99);
+    
+    // Ngẫu nhiên kiểu đặt tên
+    const type = Math.floor(Math.random() * 3);
+    if (type === 0) return (n + s + r).toLowerCase();
+    if (type === 1) return (p + '_' + n).toLowerCase();
+    return (n + r + s).toLowerCase();
+}
 
 const fakeMessages = [
     'Tay này Xỉu đẹp anh em ơi!', 'Tài đi, nãy giờ bệt Xỉu rồi.', 'Húp mạnh thôi!', 'Vừa tất tay Tài 100M, run quá.',
@@ -437,21 +448,22 @@ const fakeMessages = [
     'ĐM lại ra Tài, ảo thật đấy!', 'Nhận kéo 1-1 về bờ, ai quan tâm inbox.', 'Cầu bệt Xỉu rồi, đừng bẻ anh em ơi.',
     'Sếp ơi cho em xin ít lộc!', 'Thằng kia biết cái gì mà nói, Tài chắc luôn.', 'Hết tiền rồi, ai cho vay ít không?',
     'Cầu này soi chuẩn 99%, Xỉu đi.', 'Nổ hũ đi nào!', 'Lại gãy rồi, đen quá.', 'Admin ơi xem lại cầu này cái.',
-    'Húp Xỉu 20M ngon lành!', 'Anh em theo tôi, ván này về Tài.', 'Đừng nghe nó, nó kéo lừa đấy.', 'Xin lộc sếp ơi!'
+    'Húp Xỉu 20M ngon lành!', 'Anh em theo tôi, ván này về Tài.', 'Đừng nghe nó, nó kéo lừa đấy.', 'Xin lộc sếp ơi!',
+    'Mẹ kiếp lại gãy cầu', 'Húp 5 loét nghỉ thôi', 'Ai kéo em về bờ với', 'Cầu này nhìn như sách giáo khoa ấy nhỉ'
 ];
 
 function initFakeChatHistory() {
     for (let i = 0; i < 20; i++) {
-        const name = fakeNames[Math.floor(Math.random() * fakeNames.length)];
+        const name = generateRandomName();
         const msg = fakeMessages[Math.floor(Math.random() * fakeMessages.length)];
         addChatMessage(name, msg);
     }
 }
 
 function startFakeChat() {
-    const delay = Math.floor(Math.random() * 2000) + 1000; // 1-3 giây có 1 tin nhắn (Cực nhanh)
+    const delay = Math.floor(Math.random() * 2000) + 1000;
     setTimeout(() => {
-        const name = fakeNames[Math.floor(Math.random() * fakeNames.length)];
+        const name = generateRandomName();
         const msg = fakeMessages[Math.floor(Math.random() * fakeMessages.length)];
         addChatMessage(name, msg);
         startFakeChat();
