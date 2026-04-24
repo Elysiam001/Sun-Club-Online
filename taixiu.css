@@ -32,14 +32,11 @@ html, body {
 }
 
 .game-wrapper {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    transform: translate(-50%, -50%);
-    width: 1000px; /* Chiều rộng cơ sở để autoScale tính toán */
+    width: 100%;
+    max-width: 900px;
     padding: 20px;
     perspective: 1000px;
-    transform-origin: center center;
+    margin: 0 auto;
 }
 
 /* Khung bàn chơi */

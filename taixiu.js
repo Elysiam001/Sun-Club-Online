@@ -134,12 +134,22 @@ function getRoundResult(roundId) {
     return results[roundId];
 }
 
+// --- CẬP NHẬT SỐ DƯ AN TOÀN ---
 function updateDisplay() {
-    document.getElementById('current-balance').textContent = getBalance().toLocaleString('vi-VN');
-    document.getElementById('pending-bet-tai').textContent = pendingBetTai.toLocaleString('vi-VN');
-    document.getElementById('pending-bet-xiu').textContent = pendingBetXiu.toLocaleString('vi-VN');
-    document.getElementById('my-bet-tai').textContent = confirmedBetTai.toLocaleString('vi-VN');
-    document.getElementById('my-bet-xiu').textContent = confirmedBetXiu.toLocaleString('vi-VN');
+    const balanceEl = document.getElementById('current-balance') || document.getElementById('player-balance');
+    if (balanceEl) {
+        balanceEl.textContent = getBalance().toLocaleString('vi-VN');
+    }
+    
+    const pTai = document.getElementById('pending-bet-tai');
+    const pXiu = document.getElementById('pending-bet-xiu');
+    const mTai = document.getElementById('my-bet-tai');
+    const mXiu = document.getElementById('my-bet-xiu');
+    
+    if (pTai) pTai.textContent = pendingBetTai.toLocaleString('vi-VN');
+    if (pXiu) pXiu.textContent = pendingBetXiu.toLocaleString('vi-VN');
+    if (mTai) mTai.textContent = confirmedBetTai.toLocaleString('vi-VN');
+    if (mXiu) mXiu.textContent = confirmedBetXiu.toLocaleString('vi-VN');
 }
 updateDisplay();
 
@@ -148,27 +158,6 @@ function showNotification(msg, isError = false) {
     notification.className = `notification ${isError ? 'error' : ''}`;
     setTimeout(() => notification.classList.add('hidden'), 3000);
 }
-
-// --- TỰ ĐỘNG CÂN CHỈNH MÀN HÌNH (MOBILE) ---
-function autoScaleGame() {
-    const wrapper = document.querySelector('.game-wrapper');
-    if (!wrapper) return;
-    
-    const windowWidth = window.innerWidth;
-    const windowHeight = window.innerHeight;
-    const designWidth = 1000; // Chiều rộng thiết kế
-    const designHeight = 600; // Chiều cao thiết kế
-    
-    const scaleX = windowWidth / designWidth;
-    const scaleY = windowHeight / designHeight;
-    const scale = Math.min(scaleX, scaleY, 1); // Không bao giờ to hơn 1
-    
-    wrapper.style.transform = `translate(-50%, -50%) scale(${scale})`;
-}
-
-window.addEventListener('resize', autoScaleGame);
-window.addEventListener('load', autoScaleGame);
-autoScaleGame();
 
 // Quay lại sảnh (Sửa lại ID cho đúng với HTML của sếp)
 const btnHome = document.getElementById('btn-back');
