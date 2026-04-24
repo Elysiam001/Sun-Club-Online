@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sảnh Cổng Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="lobby.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="lobby-container">
+        <!-- Top Bar -->
+        <div class="top-bar">
+            <!-- Nửa trái: Logo & User -->
+            <div class="top-left">
+                <div class="logo">
+                    <i class="fa-solid fa-crown" style="color: #ffd700; font-size: 24px;"></i>
+                    <span style="font-weight:900; color:#fff; font-style:italic;">SUN</span>
+                </div>
+                <div class="user-profile-box">
+                    <div class="avatar-wrap">
+                        <img src="assets/bg_login.png" alt="Avatar" class="avatar-img">
+                    </div>
+                    <div class="username-wrap">
+                        <span id="player-name">Player</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ở giữa: Balance -->
+            <div class="top-center">
+                <div class="balance-container">
+                    <div class="currency-symbol">VNĐ</div>
+                    <div class="balance-amount" id="player-balance">0</div>
+                    <button class="btn-add-money" id="btn-deposit-top"><i class="fa-solid fa-plus"></i></button>
+                </div>
+            </div>
+
+            <!-- Nửa phải: Menu -->
+            <div class="top-right">
+                <button class="top-icon-btn" id="btn-fullscreen"><i class="fa-solid fa-expand"></i><span>Phóng To</span></button>
+                <button class="top-icon-btn"><i class="fa-solid fa-bell"></i><span>Tin Tức</span></button>
+                <button class="top-icon-btn" id="btn-logout"><i class="fa-solid fa-gear"></i><span>Đăng Xuất</span></button>
+            </div>
+        </div>
+
+        <!-- Thông báo chạy chữ -->
+        <div class="marquee-container">
+            <marquee id="marquee-text" behavior="scroll" direction="left" scrollamount="5">
+                Chào mừng bạn đến với cổng game uy tín nhất! Chúc các bạn chơi game vui vẻ và thắng lớn!
+            </marquee>
+        </div>
+
+        <!-- Main Game Area -->
+        <div class="main-lobby">
+            
+            <!-- Navigation Bar -->
+            <div class="game-nav-bar">
+                <button class="nav-arrow"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="nav-links">
+                    <button class="nav-link active">ALL</button>
+                    <button class="nav-link">SLOTS</button>
+                    <button class="nav-link">GAME BÀI</button>
+                </div>
+                <button class="nav-arrow"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+
+            <!-- Game Banners -->
+            <div class="game-carousel">
+                <!-- Game Duy Nhất: Tài Xỉu -->
+                <div class="game-card highlight" id="game-taixiu">
+                    <img src="assets/banner_taixiu.png" alt="Tài Xỉu">
+                    <div class="game-card-footer">
+                        <div class="pool-left">TÀI <br> <span class="small-num">259,305,000</span></div>
+                        <div class="pool-right"><span class="small-num">249,756,000</span> <br> XỈU</div>
+                    </div>
+                </div>
+                
+                <!-- Game Tiến Lên -->
+                <div class="game-card highlight" id="game-tienlen">
+                    <img src="tienlen_banner_1776964796317.png" alt="Tiến Lên">
+                    <div class="game-card-footer single">
+                        TIẾN LÊN MIỀN NAM
+                    </div>
+                </div>
+
+                <!-- Game Phỏm -->
+                <div class="game-card highlight" id="game-phom">
+                    <img src="phom_banner_1776964820031.png" alt="Phỏm">
+                    <div class="game-card-footer single">
+                        PHỎM - TÁ LẢ
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- Bottom Bar -->
+        <div class="bottom-bar-container">
+            <div class="bottom-bar-bg">
+                <div class="bottom-left">
+                    <button class="bottom-btn" id="btn-event"><i class="fa-solid fa-gift"></i><span>Sự Kiện</span></button>
+                    <button class="bottom-btn" id="btn-rules"><i class="fa-solid fa-book-open"></i><span>Luật Chơi</span></button>
+                </div>
+                
+                <div class="bottom-center">
+                    <!-- Nút rút tiền to bự lồi lên -->
+                    <button id="btn-withdraw-center" class="btn-withdraw-massive">
+                        RÚT TIỀN
+                    </button>
+                </div>
+
+                <div class="bottom-right">
+                    <button class="bottom-btn" id="btn-hotline"><i class="fa-solid fa-phone"></i><span>Hotline</span></button>
+                    <button class="bottom-btn" id="btn-livechat"><i class="fa-solid fa-comments"></i><span>Live Chat</span></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Redesigned Deposit Modal -->
+        <div id="deposit-modal" class="modal-overlay hidden">
+            <div class="modal-content premium-dep-modal">
+                <button class="modal-close-btn" onclick="closeModal('deposit-modal')"><i class="fa-solid fa-xmark"></i></button>
+                <div class="dep-tab-headers">
+                    <button class="dep-tab-btn active" onclick="switchDepTab('bank')">NGÂN HÀNG</button>
+                    <button class="dep-tab-btn" onclick="switchDepTab('card')">THẺ CÀO</button>
+                    <button class="dep-tab-btn" onclick="switchDepTab('momo')">VÍ MOMO</button>
+                    <button class="dep-tab-btn" onclick="switchDepTab('history')">LỊCH SỬ</button>
+                </div>
+                <div class="dep-content-body">
+                    <!-- NGÂN HÀNG -->
+                    <div id="dep-bank" class="dep-tab-pane">
+                        <div class="bank-top-row">
+                            <span>CHỌN NGÂN HÀNG:</span>
+                            <div class="bank-selector-box">
+                                <img src="assets/mb_logo.png" alt="MB" class="bank-logo-img">
+                                <span class="bank-name-tag">MB BANK</span>
+                            </div>
+                        </div>
+                        <div class="bank-details-grid">
+                            <div class="bank-info-item"><label>SỐ TK</label><div class="info-val-box"><span id="copy-stk">0395420402</span><button class="btn-copy" onclick="copyText('copy-stk')">COPY</button></div></div>
+                            <div class="bank-info-item"><label>CHỦ TK</label><div class="info-val-box"><span>TỐNG VĂN DŨNG</span></div></div>
+                            <div class="bank-info-item"><label>NỘI DUNG</label><div class="info-val-box highlight-box"><span id="dep-content-code-new">NAP155874</span><button class="btn-copy" onclick="copyText('dep-content-code-new')">COPY</button></div></div>
+                        </div>
+                        <div class="bank-footer-note">
+                            <p>* Lưu ý: Chuyển đúng nội dung để được cộng tiền tự động.</p>
+                        </div>
+                        <div class="bank-amount-input-wrap">
+                            <input type="number" id="dep-bank-amount-new" placeholder="Nhập số tiền đã chuyển" class="premium-input">
+                            <button class="btn-submit-dep" onclick="submitDeposit('bank')">GỬI XÁC NHẬN</button>
+                        </div>
+                    </div>
+                    <!-- THẺ CÀO -->
+                    <div id="dep-card" class="dep-tab-pane hidden">
+                        <div class="card-dep-wrapper">
+                            <div class="card-type-list">
+                                <div class="card-type-item active" onclick="selectCardType('VIETTEL', this)"><img src="assets/viettel_logo.png" alt="Viettel"></div>
+                                <div class="card-type-item" onclick="selectCardType('MOBIFONE', this)"><img src="assets/mobi_logo.png" alt="Mobi"></div>
+                                <div class="card-type-item" onclick="selectCardType('VIETNAMOBILE', this)"><img src="assets/vnm_logo.png" alt="VNM"></div>
+                            </div>
+                            <div class="card-value-table">
+                                <div class="table-header"><span>MỆNH GIÁ</span><span>NHẬN</span></div>
+                                <div class="table-body">
+                                    <div class="price-row" onclick="selectCardPrice(10000, this)"><span>10.000</span><span class="gold-text">8.000</span></div>
+                                    <div class="price-row active" onclick="selectCardPrice(50000, this)"><span>50.000</span><span class="gold-text">40.000</span></div>
+                                    <div class="price-row" onclick="selectCardPrice(100000, this)"><span>100.000</span><span class="gold-text">80.000</span></div>
+                                    <div class="price-row" onclick="selectCardPrice(500000, this)"><span>500.000</span><span class="gold-text">400.000</span></div>
+                                </div>
+                            </div>
+                            <div class="card-inputs-area">
+                                <label>THÔNG TIN THẺ</label>
+                                <input type="text" id="dep-card-pin-new" placeholder="Mã thẻ (PIN)" class="premium-input">
+                                <input type="text" id="dep-card-serial-new" placeholder="Số Seri" class="premium-input">
+                                <p class="red-note">* Chọn sai mệnh giá mất thẻ!</p>
+                                <button class="btn-submit-dep green-btn" onclick="submitDeposit('card')">NẠP THẺ</button>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- VÍ MOMO -->
+                    <div id="dep-momo" class="dep-tab-pane hidden">
+                        <div class="bank-details-grid">
+                            <div class="bank-info-item"><label>VÍ MOMO</label><div class="info-val-box"><span id="copy-momo">0395420402</span><button class="btn-copy" onclick="copyText('copy-momo')">COPY</button></div></div>
+                            <div class="bank-info-item"><label>CHỦ TK</label><div class="info-val-box"><span>TỐNG VĂN DŨNG</span></div></div>
+                        </div>
+                        
+                        <div id="momo-qr-area" class="hidden" style="text-align:center; margin-top:20px; background:#fff; padding:15px; border-radius:15px;">
+                            <p style="color:#000; font-weight:bold; margin-bottom:10px;">QUÉT MÃ ĐỂ THANH TOÁN</p>
+                            <img id="momo-qr-img" src="" alt="Momo QR" style="width:200px; height:200px; border:2px solid #a50064;">
+                            <p style="color:#a50064; font-size:12px; margin-top:10px; font-weight:bold;">Tự động cập nhật số tiền & nội dung</p>
+                        </div>
+
+                        <div class="bank-amount-input-wrap" style="margin-top:20px;">
+                            <input type="number" id="dep-momo-amount" placeholder="Nhập số tiền muốn nạp" class="premium-input">
+                            <button class="btn-submit-dep" onclick="generateMomoQR()" style="background: linear-gradient(to bottom, #ff007f, #a50064); border-color:#fff;">LẤY MÃ QR MOMO</button>
+                        </div>
+                    </div>
+                    <!-- LỊCH SỬ NẠP -->
+                    <div id="dep-history" class="dep-tab-pane hidden">
+                        <div class="history-container" id="dep-history-list">
+                            <!-- Dữ liệu đổ từ JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Withdraw Modal -->
+        <div id="withdraw-modal" class="modal-overlay hidden">
+            <div class="modal-content premium-dep-modal withdraw-premium-modal">
+                <button class="modal-close-btn" onclick="closeModal('withdraw-modal')"><i class="fa-solid fa-xmark"></i></button>
+                <div class="dep-tab-headers">
+                    <button class="dep-tab-btn active" onclick="switchWdTab('bank')">NGÂN HÀNG</button>
+                    <button class="dep-tab-btn" onclick="switchWdTab('card')">RÚT THẺ</button>
+                    <button class="dep-tab-btn" onclick="switchWdTab('momo')">VÍ MOMO</button>
+                    <button class="dep-tab-btn" onclick="switchWdTab('history')">LỊCH SỬ</button>
+                </div>
+                <div class="dep-content-body">
+                    <div class="wd-balance-info">SỐ DƯ: <span id="wd-current-balance-new">0</span> VNĐ</div>
+                    <!-- BANK WITHDRAW -->
+                    <div id="wd-bank" class="dep-tab-pane">
+                        <div class="bank-details-grid wd-grid">
+                            <select id="wd-bank-name-new" class="premium-input select-dark">
+                                <option value="">-- CHỌN NGÂN HÀNG --</option>
+                                <option value="VCB">Vietcombank</option>
+                                <option value="MB">MB Bank</option>
+                            </select>
+                            <input type="text" id="wd-account-no-new" placeholder="Số tài khoản nhận" class="premium-input">
+                            <input type="text" id="wd-account-name-new" placeholder="Tên chủ tài khoản" class="premium-input">
+                            <input type="number" id="wd-amount-new" placeholder="Số tiền muốn rút" class="premium-input">
+                            <div class="otp-input-group">
+                                <input type="text" id="wd-otp" placeholder="Mã OTP" class="premium-input">
+                                <button class="btn-get-otp" onclick="getFakeOTP()">LẤY MÃ</button>
+                            </div>
+                        </div>
+                        <button class="btn-submit-dep wd-main-btn" onclick="submitWithdraw()" style="width:100%; margin-top:20px;">GỬI LỆNH RÚT TIỀN</button>
+                    </div>
+                    <!-- CARD WITHDRAW -->
+                    <div id="wd-card" class="dep-tab-pane hidden">
+                        <div class="card-dep-wrapper wd-card-grid">
+                            <div class="card-type-list">
+                                <div class="card-type-item active" onclick="selectWdCardType('VIETTEL', this)"><img src="assets/viettel_logo.png" alt="Viettel"></div>
+                                <div class="card-type-item" onclick="selectWdCardType('MOBIFONE', this)"><img src="assets/mobi_logo.png" alt="Mobi"></div>
+                                <div class="card-type-item" onclick="selectWdCardType('VIETNAMOBILE', this)"><img src="assets/vnm_logo.png" alt="VNM"></div>
+                            </div>
+                            <div class="card-value-table">
+                                <div class="table-header"><span>MỆNH GIÁ</span><span>NHẬN</span></div>
+                                <div class="table-body">
+                                    <div class="price-row" onclick="selectWdCardPrice(10000, this)"><span>10.000</span><span class="gold-text">10.000</span></div>
+                                    <div class="price-row" onclick="selectWdCardPrice(20000, this)"><span>20.000</span><span class="gold-text">20.000</span></div>
+                                    <div class="price-row" onclick="selectWdCardPrice(50000, this)"><span>50.000</span><span class="gold-text">50.000</span></div>
+                                    <div class="price-row active" onclick="selectWdCardPrice(100000, this)"><span>100.000</span><span class="gold-text">100.000</span></div>
+                                    <div class="price-row" onclick="selectWdCardPrice(200000, this)"><span>200.000</span><span class="gold-text">200.000</span></div>
+                                    <div class="price-row" onclick="selectWdCardPrice(500000, this)"><span>500.000</span><span class="gold-text">500.000</span></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button class="btn-submit-dep green-btn" onclick="submitWithdrawCard()" style="width:100%; margin-top:20px; height:50px">ĐỔI THẺ NGAY</button>
+                    </div>
+                    <!-- LỊCH SỬ RÚT -->
+                    <div id="wd-history" class="dep-tab-pane hidden">
+                        <div class="history-container" id="wd-history-list">
+                            <!-- Dữ liệu đổ từ JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div> <!-- End .lobby-container -->
+
+    <div id="custom-alert-modal" class="modal-overlay hidden">
+        <div class="modal-content premium-alert">
+            <h3 id="alert-title">THÔNG BÁO</h3>
+            <p id="alert-message">Nội dung...</p>
+            <button class="cyber-btn alert-ok-btn" onclick="closeAlert()">ĐÃ HIỂU</button>
+        </div>
+    </div>
+
+    <script src="lobby.js"></script>
+</body>
+</html>

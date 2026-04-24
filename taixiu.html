@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tài Xỉu Siêu Mượt</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="taixiu.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+
+    <div id="notification" class="notification hidden" style="z-index: 1000;"></div>
+
+    <!-- Nút trở về (Ẩn đi nếu làm popup, ở đây giữ làm nút back) -->
+    <button id="btn-back" class="btn-back-lobby"><i class="fa-solid fa-house"></i></button>
+
+    <!-- UI Bàn Game -->
+    <div class="game-wrapper">
+        <div class="game-board-premium">
+            
+            <!-- Header Bàn -->
+            <div class="board-header">
+                <button class="icon-btn-round" id="btn-soicau"><i class="fa-solid fa-chart-line"></i></button>
+                <button class="icon-btn-round"><i class="fa-solid fa-circle-info"></i></button>
+                <div class="title-logo">TÀI XỈU <span id="round-id-display">#934042</span></div>
+                <button class="icon-btn-round" id="btn-bxh"><i class="fa-solid fa-trophy"></i></button>
+                <button class="icon-btn-round" id="btn-close-game"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            
+            <!-- History Dots (Soi cầu nhanh trên bàn) -->
+            <div class="history-dots" id="history-dots-container"></div>
+
+            <!-- Main Betting Area -->
+            <div class="bet-area">
+                
+                <!-- TÀI -->
+                <div class="bet-side" id="side-tai">
+                    <div class="users-count" id="users-tai"><i class="fa-solid fa-users"></i> 2093</div>
+                    <div class="side-title">TÀI</div>
+                    <div class="side-total" id="tai-total-pool">741,648,460</div>
+                    <div class="my-pending-bet">CƯỢC: <span id="pending-bet-tai">0</span></div>
+                    <div class="my-confirmed-bet" id="my-bet-tai">0</div>
+                </div>
+
+                <!-- CENTER (DICE) -->
+                <div class="center-circle" id="center-circle-area">
+                    <div id="countdown-timer" class="timer-text">--</div>
+                    
+                    <!-- 3D Dice Container -->
+                    <div class="dice-scene hidden" id="dice-scene">
+                        <div class="dice-3d" id="dice-1">
+                            <div class="face front"><span class="dot"></span></div>
+                            <div class="face back"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face right"><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face left"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face bottom"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                        </div>
+                        <div class="dice-3d" id="dice-2">
+                            <div class="face front"><span class="dot"></span></div>
+                            <div class="face back"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face right"><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face left"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face bottom"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                        </div>
+                        <div class="dice-3d" id="dice-3">
+                            <div class="face front"><span class="dot"></span></div>
+                            <div class="face back"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face right"><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face left"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face bottom"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                        </div>
+                    </div>
+
+                    <!-- BÁT NẶN -->
+                    <div id="bowl-cover" class="bowl hidden"></div>
+                </div>
+
+                <!-- XỈU -->
+                <div class="bet-side" id="side-xiu">
+                    <div class="users-count" id="users-xiu"><i class="fa-solid fa-users"></i> 1805</div>
+                    <div class="side-title">XỈU</div>
+                    <div class="side-total" id="xiu-total-pool">741,648,460</div>
+                    <div class="my-pending-bet">CƯỢC: <span id="pending-bet-xiu">0</span></div>
+                    <div class="my-confirmed-bet" id="my-bet-xiu">0</div>
+                </div>
+
+            </div>
+
+            <!-- Lịch sử (Chấm tròn dưới) -->
+            <div class="history-dots">
+                <div class="dot-tai"></div><div class="dot-xiu"></div><div class="dot-xiu"></div>
+                <div class="dot-tai"></div><div class="dot-tai"></div><div class="dot-xiu"></div>
+                <div class="dot-tai"></div><div class="dot-xiu"></div><div class="dot-tai"></div>
+                <div class="dot-tai"></div>
+            </div>
+
+            <!-- Chips Area -->
+            <div class="chips-container-wrapper">
+                <button class="nav-chip left-arrow"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="chips-container" id="chips-container">
+                    <button class="chip" data-val="100000">100K</button>
+                    <button class="chip" data-val="500000">500K</button>
+                    <button class="chip" data-val="1000000">1M</button>
+                    <button class="chip" data-val="5000000">5M</button>
+                    <button class="chip" data-val="10000000">10M</button>
+                    <button class="chip" data-val="50000000">50M</button>
+                    <button class="chip" data-val="100000000">100M</button>
+                    <button class="chip" data-val="200000000">200M</button>
+                    <button class="chip" data-val="500000000">500M</button>
+                    <button class="chip" data-val="1000000000">1T</button>
+                    <button class="chip" data-val="5000000000">5T</button>
+                    <button class="chip" data-val="10000000000">10T</button>
+                    <button class="chip" data-val="20000000000">20T</button>
+                    <button class="chip" data-val="50000000000">50T</button>
+                </div>
+                <button class="nav-chip right-arrow"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+
+            <!-- Actions Area -->
+            <div class="actions-container">
+                <div class="action-balance"><i class="fa-solid fa-coins" style="color:var(--gold-light)"></i> Số dư: <span id="current-balance">0</span></div>
+                <div class="action-buttons">
+                    <button class="btn-action btn-allin" id="btn-allin">ALL-IN</button>
+                    <button class="btn-action btn-confirm" id="btn-confirm">ĐẶT CƯỢC</button>
+                    <button class="btn-action btn-cancel" id="btn-cancel">HỦY</button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- MODAL SOI CẦU -->
+    <div id="modal-soicau" class="modal-overlay hidden">
+        <div class="modal-content premium-modal">
+            <button class="close-modal-btn" id="btn-close-soicau"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title">THỐNG KÊ TÀI XỈU</h2>
+            
+            <div class="chart-container">
+                <canvas id="canvas-tong" width="800" height="200"></canvas>
+            </div>
+            
+            <div class="chart-container mt-10">
+                <canvas id="canvas-xucxac" width="800" height="150"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL BẢNG XẾP HẠNG -->
+    <div id="modal-bxh" class="modal-overlay hidden">
+        <div class="modal-content premium-modal rank-modal">
+            <button class="close-modal-btn" id="btn-close-bxh"><i class="fa-solid fa-xmark"></i></button>
+            <h2 class="modal-title">BẢNG XẾP HẠNG THẮNG LỚN</h2>
+            
+            <div class="rank-list-header">
+                <span>TOP</span>
+                <span>TÀI KHOẢN</span>
+                <span>TIỀN THẮNG</span>
+            </div>
+            <div class="rank-list" id="rank-list-container">
+                <!-- Data will be injected by JS -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Notification Modal -->
+    <div id="custom-alert-modal" class="modal-overlay hidden">
+        <div class="modal-content premium-alert">
+            <h3 id="alert-title">THÔNG BÁO</h3>
+            <p id="alert-message">Nội dung thông báo ở đây...</p>
+            <button class="alert-ok-btn" onclick="closeAlert()">ĐÃ HIỂU</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="taixiu.js"></script>
+</body>
+</html>

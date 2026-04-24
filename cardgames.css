@@ -1,0 +1,195 @@
+.card-lobby-container {
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle, #004d40, #00241a);
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.lobby-header {
+    height: 60px;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    border-bottom: 2px solid var(--gold-light);
+}
+
+.btn-back {
+    background: linear-gradient(to bottom, #555, #222);
+    border: 1px solid #777;
+    color: #fff;
+    padding: 8px 15px;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.lobby-header h1 {
+    font-size: 20px;
+    color: var(--gold-light);
+    text-shadow: 0 0 10px rgba(255,215,0,0.5);
+}
+
+.user-info-mini {
+    text-align: right;
+}
+
+.filter-bar {
+    padding: 15px 20px;
+    display: flex;
+    gap: 10px;
+    background: rgba(0,0,0,0.3);
+}
+
+.filter-btn {
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    color: #ccc;
+    padding: 8px 20px;
+    border-radius: 20px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+
+.filter-btn.active {
+    background: var(--gold-light);
+    color: #000;
+    font-weight: bold;
+    border-color: #fff;
+}
+
+.btn-quick-play {
+    margin-left: auto;
+    background: linear-gradient(to bottom, #ff9800, #e65100);
+    border: none;
+    color: #fff;
+    padding: 8px 20px;
+    border-radius: 20px;
+    font-weight: bold;
+    cursor: pointer;
+    box-shadow: 0 0 15px rgba(255, 152, 0, 0.5);
+}
+
+.tables-grid {
+    flex: 1;
+    padding: 20px;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+    overflow-y: auto;
+}
+
+.game-table {
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(255,215,0,0.3);
+    border-radius: 15px;
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    position: relative;
+    transition: 0.3s;
+    cursor: pointer;
+}
+
+.game-table:hover {
+    transform: translateY(-5px);
+    border-color: var(--gold-light);
+    box-shadow: 0 5px 20px rgba(255,215,0,0.2);
+}
+
+.table-id {
+    position: absolute;
+    top: 10px;
+    left: 15px;
+    font-size: 12px;
+    color: #888;
+}
+
+.table-bet {
+    font-size: 22px;
+    font-weight: 900;
+    color: var(--gold-light);
+    margin: 10px 0;
+}
+
+.table-req {
+    font-size: 12px;
+    color: #aaa;
+    margin-bottom: 15px;
+}
+
+.table-visual {
+    width: 120px;
+    height: 80px;
+    background: #00796b;
+    border: 5px solid #5d4037;
+    border-radius: 40px;
+    position: relative;
+    margin-bottom: 15px;
+    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+}
+
+.chair {
+    width: 25px;
+    height: 25px;
+    background: #8d6e63;
+    border-radius: 50%;
+    position: absolute;
+}
+
+.chair.top { top: -15px; left: 50%; transform: translateX(-50%); }
+.chair.bottom { bottom: -15px; left: 50%; transform: translateX(-50%); }
+.chair.left { left: -15px; top: 50%; transform: translateY(-50%); }
+.chair.right { right: -15px; top: 50%; transform: translateY(-50%); }
+
+.chair.active {
+    background: var(--gold-light);
+    box-shadow: 0 0 5px var(--gold-light);
+}
+
+.table-players-count {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-weight: bold;
+}
+
+.btn-join-table {
+    width: 100%;
+    padding: 10px;
+    background: linear-gradient(to bottom, #4caf50, #2e7d32);
+    border: none;
+    color: #fff;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+}
+/* --- RESPONSIVE CARD LOBBY --- */
+@media (max-width: 768px) {
+    .lobby-header { height: auto; padding: 10px; flex-direction: column; gap: 10px; text-align: center; }
+    .lobby-header h1 { font-size: 16px; }
+    .user-info-mini { text-align: center; font-size: 12px; }
+    
+    .filter-bar {
+        overflow-x: auto;
+        padding: 10px;
+        white-space: nowrap;
+        display: block; /* Horizontal scroll */
+    }
+    .filter-btn { padding: 6px 15px; font-size: 11px; display: inline-block; margin-right: 5px; }
+    .btn-quick-play { display: inline-block; margin-top: 10px; width: 100%; }
+
+    .tables-grid {
+        grid-template-columns: 1fr;
+        padding: 10px;
+        gap: 15px;
+    }
+    .game-table { padding: 15px; }
+}

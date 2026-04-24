@@ -1,0 +1,349 @@
+:root {
+    --gold-light: #ffd700;
+    --gold-dark: #b8860b;
+    --red-main: #8a0303;
+    --red-dark: #4a0000;
+    --bg-dark: #0f0f0f;
+    --text-light: #fefefe;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Arial', sans-serif; /* Chuyển sang font dễ đọc hơn cho casino */
+}
+
+body {
+    background-color: var(--bg-dark);
+    color: var(--text-light);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: url('assets/bg_login.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.container {
+    position: relative;
+    width: 100%;
+    max-width: 450px;
+    padding: 20px;
+    z-index: 1;
+}
+
+/* Notification */
+.notification {
+    position: absolute;
+    top: -60px;
+    left: 50%;
+    transform: translateX(-50%);
+    padding: 10px 20px;
+    border-radius: 4px;
+    background: rgba(0,0,0,0.8);
+    border: 1px solid var(--gold-light);
+    color: var(--gold-light);
+    text-align: center;
+    width: 100%;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+    z-index: 100;
+}
+
+.notification.error {
+    color: #ff3333;
+    border-color: #ff3333;
+    box-shadow: 0 0 10px rgba(255, 51, 51, 0.5);
+}
+
+.notification.hidden {
+    opacity: 0;
+    visibility: hidden;
+    top: -40px;
+}
+
+/* Luxury Form Wrapper */
+.form-wrapper {
+    position: relative;
+    width: 100%;
+    background: linear-gradient(145deg, rgba(74, 0, 0, 0.9), rgba(20, 0, 0, 0.95));
+    border: 2px solid var(--gold-dark);
+    border-radius: 15px;
+    padding: 40px 30px;
+    box-shadow: 0 0 30px rgba(0, 0, 0, 0.8),
+                inset 0 0 15px rgba(255, 215, 0, 0.2);
+    overflow: hidden;
+}
+
+.form-box {
+    width: 100%;
+    transition: transform 0.5s ease, opacity 0.5s ease;
+}
+
+.form-box.hidden {
+    position: absolute;
+    top: 40px;
+    left: 30px;
+    width: calc(100% - 60px);
+    transform: scale(0.9) translateY(30px);
+    opacity: 0;
+    pointer-events: none;
+}
+
+h2 {
+    text-align: center;
+    font-size: 28px;
+    margin-bottom: 5px;
+    color: var(--gold-light);
+    text-shadow: 0 2px 4px rgba(0,0,0,0.8);
+    text-transform: uppercase;
+    background: -webkit-linear-gradient(#fff, #ffd700);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+.subtitle {
+    text-align: center;
+    font-size: 14px;
+    color: #ccc;
+    margin-bottom: 30px;
+}
+
+/* Input Styles */
+.input-group {
+    position: relative;
+    margin-bottom: 25px;
+}
+
+.input-group i {
+    position: absolute;
+    top: 50%;
+    left: 15px;
+    transform: translateY(-50%);
+    color: var(--gold-dark);
+    transition: 0.3s ease;
+}
+
+.input-group input {
+    width: 100%;
+    padding: 12px 15px 12px 45px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid var(--gold-dark);
+    border-radius: 5px;
+    color: var(--text-light);
+    font-size: 16px;
+    outline: none;
+    transition: 0.3s ease;
+}
+
+.input-group label {
+    position: absolute;
+    top: 50%;
+    left: 45px;
+    transform: translateY(-50%);
+    color: #888;
+    pointer-events: none;
+    transition: 0.3s ease;
+    background: transparent;
+    padding: 0 5px;
+}
+
+.input-group input:focus,
+.input-group input:not(:placeholder-shown) {
+    border-color: var(--gold-light);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.2);
+}
+
+.input-group input:focus ~ label,
+.input-group input:not(:placeholder-shown) ~ label {
+    top: 0;
+    font-size: 12px;
+    color: var(--gold-light);
+    background: var(--red-dark);
+    border-radius: 3px;
+}
+
+.input-group input:focus ~ i {
+    color: var(--gold-light);
+}
+
+/* Casino Button */
+.cyber-btn {
+    position: relative;
+    width: 100%;
+    padding: 12px;
+    background: linear-gradient(to bottom, #ffd700, #b8860b);
+    border: 1px solid #fff;
+    color: #000;
+    font-size: 18px;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 10px;
+    border-radius: 5px;
+    transition: 0.3s ease;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.5);
+    text-transform: uppercase;
+}
+
+.cyber-btn:hover {
+    background: linear-gradient(to bottom, #fff, #ffd700);
+    box-shadow: 0 0 15px var(--gold-light);
+}
+
+.cyber-btn:active {
+    transform: translateY(2px);
+}
+
+/* Switch Form Link */
+.switch-form {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+    color: #ccc;
+}
+
+.switch-form a {
+    color: var(--gold-light);
+    text-decoration: none;
+    font-weight: bold;
+    transition: 0.3s ease;
+}
+
+.switch-form a:hover {
+    text-shadow: 0 0 5px var(--gold-light);
+    text-decoration: underline;
+}
+
+/* Modals / Popups for Admin & Lobby */
+.modal-overlay {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0,0,0,0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background: linear-gradient(145deg, #4a0000, #2a0000);
+    border: 2px solid var(--gold-light);
+    border-radius: 10px;
+    padding: 30px;
+    width: 90%;
+    max-width: 500px;
+    position: relative;
+    box-shadow: 0 0 30px rgba(0,0,0,0.9);
+}
+
+.modal-close {
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    background: none;
+    border: none;
+    color: var(--gold-light);
+    font-size: 24px;
+    cursor: pointer;
+}
+
+.modal-content h3 {
+    color: var(--gold-light);
+    text-align: center;
+    margin-bottom: 20px;
+    font-size: 22px;
+}
+
+/* --- CUSTOM PREMIUM ALERT (GLOBAL) --- */
+#custom-alert-modal {
+    z-index: 99999 !important; /* Luôn trên mọi modal khác */
+}
+
+/* Common Utility */
+.hidden {
+    display: none !important;
+}
+
+.premium-alert {
+    width: 420px;
+    background: linear-gradient(135deg, #4a0000 0%, #2a0000 100%);
+    border: 3px solid var(--gold-light);
+    border-radius: 20px;
+    text-align: center;
+    padding: 35px;
+    box-shadow: 0 0 50px rgba(0,0,0,1), inset 0 0 15px rgba(255,215,0,0.2);
+    animation: alertPop 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    position: relative;
+    overflow: hidden;
+}
+
+@keyframes alertPop {
+    0% { transform: scale(0.5); opacity: 0; }
+    100% { transform: scale(1); opacity: 1; }
+}
+
+.premium-alert::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; height: 5px;
+    background: linear-gradient(to right, transparent, var(--gold-light), transparent);
+}
+
+.premium-alert h3 {
+    color: var(--gold-light);
+    font-size: 26px;
+    margin-bottom: 20px;
+    text-shadow: 0 2px 5px #000;
+    font-weight: 900;
+    letter-spacing: 1px;
+}
+
+.premium-alert p {
+    color: #fff;
+    font-size: 16px;
+    line-height: 1.6;
+    margin-bottom: 30px;
+    white-space: pre-line;
+}
+
+.alert-ok-btn {
+    width: 100%;
+    background: linear-gradient(to bottom, #ffd700, #b8860b);
+    color: #4a0000;
+    font-weight: 900;
+    padding: 14px;
+    border-radius: 30px;
+    border: 2px solid #fff;
+    cursor: pointer;
+    font-size: 18px;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+    transition: 0.2s;
+    text-transform: uppercase;
+    position: relative;
+    z-index: 100000 !important; /* Đảm bảo không bị che */
+}
+
+.alert-ok-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 5px 20px var(--gold-light);
+}
+
+
+/* --- RESET RESPONSIVE --- */
+@media (max-width: 768px) {
+    html, body { 
+        width: 100%; 
+        height: 100%; 
+        overflow-x: hidden; 
+        overflow-y: auto;
+        position: relative;
+        left: 0;
+        top: 0;
+        transform: none !important;
+    }
+}
+

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đang chơi - Sun-Club</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="ingame.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="game-table-container">
+        <!-- Header Info -->
+        <div class="table-header">
+            <button class="btn-leave" onclick="window.location.href='cardgames.html'"><i class="fa-solid fa-door-open"></i> RỜI BÀN</button>
+            <div class="table-info-text">BÀN #105 - CƯỢC: <span class="gold-text" id="bet-val">100.000</span></div>
+            <button class="btn-chat"><i class="fa-solid fa-comment"></i></button>
+        </div>
+
+        <!-- Players Around Table -->
+        <div class="player-pos top">
+            <div class="avatar-box">
+                <div class="timer-ring"></div>
+                <img src="https://i.pravatar.cc/150?u=bot1" alt="Avatar">
+                <div class="card-count">13</div>
+            </div>
+            <div class="p-name">satthu99</div>
+            <div class="p-balance">500.0M</div>
+        </div>
+
+        <div class="player-pos left">
+            <div class="avatar-box">
+                <div class="timer-ring"></div>
+                <img src="https://i.pravatar.cc/150?u=bot2" alt="Avatar">
+                <div class="card-count">13</div>
+            </div>
+            <div class="p-name">trum_bai</div>
+            <div class="p-balance">1.2B</div>
+        </div>
+
+        <div class="player-pos right">
+            <div class="avatar-box">
+                <div class="timer-ring"></div>
+                <img src="https://i.pravatar.cc/150?u=bot3" alt="Avatar">
+                <div class="card-count">13</div>
+            </div>
+            <div class="p-name">daigia_88</div>
+            <div class="p-balance">850.0M</div>
+        </div>
+
+        <!-- Center Area (Played Cards) -->
+        <div class="center-play-area" id="played-cards">
+            <!-- Cards played in current round -->
+        </div>
+
+        <!-- User Area (Bottom) -->
+        <div class="user-bottom-area">
+            <div class="user-info">
+                <div class="avatar-box self">
+                    <div class="timer-ring"></div>
+                    <img src="https://i.pravatar.cc/150?u=self" alt="Avatar">
+                    <div class="timer-text">30</div>
+                </div>
+                <div class="user-meta">
+                    <div class="p-name" id="my-name">User</div>
+                    <div class="p-balance" id="my-balance">1,000T</div>
+                </div>
+            </div>
+
+            <div class="my-hand" id="my-hand">
+                <!-- 13 cards will be here -->
+            </div>
+
+            <div class="action-buttons">
+                <button class="btn-game secondary" onclick="sortCards()">XẾP BÀI</button>
+                <button class="btn-game danger" onclick="skipTurn()">BỎ LƯỢT</button>
+                <button class="btn-game primary" onclick="playCards()">ĐÁNH</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification -->
+    <div id="game-notify" class="game-notify hidden">Lượt của bạn!</div>
+
+    <script src="ingame.js"></script>
+</body>
+</html>

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sảnh Bàn Chơi - Sun-Club</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="cardgames.css">
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+<body>
+    <div class="card-lobby-container">
+        <!-- Header -->
+        <div class="lobby-header">
+            <button class="btn-back" onclick="window.location.href='lobby.html'"><i class="fa-solid fa-chevron-left"></i> QUAY LẠI</button>
+            <h1 id="game-title">TIẾN LÊN MIỀN NAM</h1>
+            <div class="user-info-mini">
+                <span id="player-name">User</span>
+                <span id="player-balance" class="gold-text">0 VNĐ</span>
+            </div>
+        </div>
+
+        <!-- Filter Bar -->
+        <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterTables('all', this)">TẤT CẢ</button>
+            <button class="filter-btn" onclick="filterTables('so-cap', this)">SƠ CẤP</button>
+            <button class="filter-btn" onclick="filterTables('trung-cap', this)">TRUNG CẤP</button>
+            <button class="filter-btn" onclick="filterTables('cao-cap', this)">CAO CẤP</button>
+            <button class="btn-quick-play" onclick="quickPlay()"><i class="fa-solid fa-bolt"></i> CHƠI NHANH</button>
+        </div>
+
+        <!-- Tables Grid -->
+        <div class="tables-grid" id="tables-container">
+            <!-- Tables will be generated here -->
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="custom-alert-modal" class="modal-overlay hidden">
+        <div class="modal-content premium-alert">
+            <h3 id="alert-title">THÔNG BÁO</h3>
+            <p id="alert-message">Nội dung...</p>
+            <button class="cyber-btn alert-ok-btn" onclick="closeAlert()">ĐÃ HIỂU</button>
+        </div>
+    </div>
+
+    <script src="cardgames.js"></script>
+</body>
+</html>

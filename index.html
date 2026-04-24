@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cổng Game Bài Đổi Thưởng Quốc Tế</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- UI Container -->
+    <div class="container">
+        <!-- Notification Area -->
+        <div id="notification" class="notification hidden"></div>
+
+        <div class="form-wrapper">
+            <!-- Login Form -->
+            <div class="form-box login-box">
+                <h2>CỔNG GAME HOÀNG GIA</h2>
+                <p class="subtitle">Đăng nhập để trải nghiệm đỉnh cao</p>
+                <form id="login-form">
+                    <div class="input-group">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="login-username" required autocomplete="off" placeholder=" ">
+                        <label>Tài khoản</label>
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="login-password" required autocomplete="off" placeholder=" ">
+                        <label>Mật khẩu</label>
+                    </div>
+                    <button type="submit" class="cyber-btn">
+                        <span class="btn-text">ĐĂNG NHẬP</span>
+                    </button>
+                    
+                    <p class="switch-form">Chưa có tài khoản? <a href="#" id="go-to-register">Đăng ký ngay</a></p>
+                </form>
+            </div>
+
+            <!-- Register Form -->
+            <div class="form-box register-box hidden">
+                <h2>TẠO TÀI KHOẢN MỚI</h2>
+                <p class="subtitle">Nhận ngay 5.000.000 VNĐ khởi nghiệp</p>
+                <form id="register-form">
+                    <div class="input-group">
+                        <i class="fa-solid fa-user"></i>
+                        <input type="text" id="reg-username" required autocomplete="off" placeholder=" ">
+                        <label>Tên đăng nhập</label>
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-lock"></i>
+                        <input type="password" id="reg-password" required autocomplete="off" placeholder=" ">
+                        <label>Mật khẩu</label>
+                    </div>
+                    <div class="input-group">
+                        <i class="fa-solid fa-shield-halved"></i>
+                        <input type="password" id="reg-confirm-password" required autocomplete="off" placeholder=" ">
+                        <label>Xác nhận mật khẩu</label>
+                    </div>
+                    <button type="submit" class="cyber-btn">
+                        <span class="btn-text">ĐĂNG KÝ</span>
+                    </button>
+                    
+                    <p class="switch-form">Đã có tài khoản? <a href="#" id="go-to-login">Quay lại đăng nhập</a></p>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

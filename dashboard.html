@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hacker Portal - Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <style>
+        .dashboard-container {
+            width: 100%;
+            max-width: 800px;
+            margin-top: 50px;
+        }
+        
+        .welcome-msg {
+            color: var(--primary-color);
+            text-align: center;
+            margin-bottom: 30px;
+            text-shadow: 0 0 10px var(--primary-color);
+            font-size: 24px;
+        }
+        
+        .logout-btn {
+            display: block;
+            margin: 20px auto 0;
+            width: 200px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Hacker Background -->
+    <canvas id="hacker-bg"></canvas>
+
+    <!-- UI Container -->
+    <div class="container dashboard-container">
+        <div class="form-wrapper">
+            <h2><i class="fa-solid fa-server"></i> MAIN TERMINAL</h2>
+            <div id="welcome-message" class="welcome-msg">Đang xác thực định danh...</div>
+            
+            <p style="text-align: center; color: rgba(0, 255, 65, 0.7); line-height: 1.6;">
+                Kết nối mã hóa an toàn đã được thiết lập.<br>
+                Đây là không gian điều khiển trung tâm (Dashboard).<br>
+                Hệ thống đang chờ lệnh khởi tạo chức năng tiếp theo từ người quản trị.
+            </p>
+
+            <button id="proceed-btn" class="cyber-btn logout-btn">
+                <span class="btn-text">TIẾN TỚI ĐÍCH</span>
+                <span class="btn-glitch"></span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Copy hiệu ứng Matrix từ trang đăng nhập
+        const canvas = document.getElementById('hacker-bg');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789@#$%^&*()_+~`|}{[]:;?><,./-=';
+        const fontSize = 14;
+        const columns = canvas.width / fontSize;
+        const drops = [];
+        for (let x = 0; x < columns; x++) drops[x] = 1;
+        function drawMatrix() {
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.05)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = '#0F0';
+            ctx.font = fontSize + 'px "Share Tech Mono"';
+            for (let i = 0; i < drops.length; i++) {
+                const text = characters.charAt(Math.floor(Math.random() * characters.length));
+                ctx.fillText(text, i * fontSize, drops[i] * fontSize);
+                if (drops[i] * fontSize > canvas.height && Math.random() > 0.975) drops[i] = 0;
+                drops[i]++;
+            }
+        }
+        setInterval(drawMatrix, 33);
+        window.addEventListener('resize', () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; });
+
+        // Logic Dashboard
+        const currentUser = sessionStorage.getItem('hacker_currentUser');
+        if (!currentUser) {
+            // Không có session, đuổi về trang login
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('welcome-message').innerHTML = `Xác thực thành công. Xin chào, <strong>[${currentUser}]</strong>`;
+        }
+
+        document.getElementById('proceed-btn').addEventListener('click', () => {
+            window.location.href = 'taixiu.html';
+        });
+    </script>
+</body>
+</html>
