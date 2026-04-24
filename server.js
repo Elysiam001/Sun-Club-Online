@@ -66,143 +66,108 @@ io.on('connection', (socket) => {
     socket.on('login', ({ username }) => {
         let db = readDB();
         if (!db.users[username]) {
-            db.users[username] = { balance: 0, password: '123' };
-            writeDB(db);
+            socket.emit('login_result', { success: false, message: 'Sai tài khoản hoặc mật khẩu!' });
         }
-        socket.username = username;
-        socket.emit('loginSuccess', { 
-            username, 
-            balance: db.users[username].balance,
-            transactions: db.transactions.filter(t => t.username === username)
-        });
-        console.log(`${username} logged in.`);
     });
 
-    // Nạp tiền
-    socket.on('submitDeposit', (data) => {
-        let db = readDB();
-        const newReq = {
+    // Lấy thông tin khi vào Sảnh/Game
+    socket.on('login', async ({ username }) => {
+        const user = await User.findOne({ username });
+        if (user) {
+            const trans = await Transaction.find({ username: user.username });
+            socket.emit('loginSuccess', { 
+                username: user.username, 
+                balance: user.balance, 
+                transactions: trans 
+            });
+        }
+    });
+
+    // Gửi yêu cầu Nạp tiền
+    socket.on('submitDeposit', async (data) => {
+        const newReq = new Transaction({
             id: Date.now(),
             username: data.username,
+            amount: data.amount,
             type: 'deposit',
-            amount: parseInt(data.amount),
             details: data.details,
-            status: 'pending',
-            time: new Date().toLocaleString()
-        };
-        db.transactions.push(newReq);
-        writeDB(db);
-        
-        // Cập nhật ngay danh sách giao dịch cho người chơi
-        socket.emit('loginSuccess', { 
-            username: data.username, 
-            balance: db.users[data.username].balance,
-            transactions: db.transactions.filter(t => t.username === data.username)
+            time: new Date().toLocaleString('vi-VN'),
+            status: 'pending'
         });
-
+        await newReq.save();
         io.emit('newRequestAlert', newReq);
-        io.emit('allRequests', db.transactions); // Cập nhật cho Admin
-        console.log(`New Deposit: ${data.username} - ${data.amount}`);
     });
 
-    // Rút tiền
-    socket.on('submitWithdraw', (data) => {
-        let db = readDB();
-        const newReq = {
+    // Gửi yêu cầu Rút tiền
+    socket.on('submitWithdraw', async (data) => {
+        const newReq = new Transaction({
             id: Date.now(),
             username: data.username,
+            amount: data.amount,
             type: 'withdraw',
-            amount: parseInt(data.amount),
             details: data.details,
-            status: 'pending',
-            time: new Date().toLocaleString()
-        };
-        db.transactions.push(newReq);
-        writeDB(db);
-
-        // Cập nhật ngay danh sách giao dịch cho người chơi
-        socket.emit('loginSuccess', { 
-            username: data.username, 
-            balance: db.users[data.username].balance,
-            transactions: db.transactions.filter(t => t.username === data.username)
+            time: new Date().toLocaleString('vi-VN'),
+            status: 'pending'
         });
-
+        await newReq.save();
         io.emit('newRequestAlert', newReq);
-        io.emit('allRequests', db.transactions);
-        console.log(`New Withdraw: ${data.username} - ${data.amount}`);
     });
 
-    // Admin lấy danh sách
-    socket.on('adminGetRequests', () => {
-        let db = readDB();
-        socket.emit('allRequests', db.transactions);
+    // ADMIN LẤY TOÀN BỘ YÊU CẦU
+    socket.on('adminGetRequests', async () => {
+        const allTrans = await Transaction.find();
+        socket.emit('allRequests', allTrans);
     });
 
-    // ADMIN DUYỆT GIAO DỊCH (QUAN TRỌNG)
-    socket.on('adminAction', ({ requestId, action }) => {
-        let db = readDB();
-        const reqIndex = db.transactions.findIndex(r => r.id === requestId);
-        
-        if (reqIndex !== -1) {
-            const req = db.transactions[reqIndex];
-            if (req.status !== 'pending') return; 
-
+    // ADMIN DUYỆT GIAO DỊCH
+    socket.on('adminAction', async ({ requestId, action }) => {
+        const req = await Transaction.findOne({ id: requestId });
+        if (req && req.status === 'pending') {
             req.status = action;
+            const user = await User.findOne({ username: req.username });
             
-            if (action === 'approved') {
-                const user = db.users[req.username];
-                if (user) {
-                    if (req.type === 'deposit') {
-                        user.balance += req.amount;
-                    } else if (req.type === 'withdraw') {
-                        // Luôn trừ tiền khi Duyệt lệnh rút
-                        user.balance -= req.amount;
-
-                        // Nếu là rút thẻ cào, sinh thêm mã PIN/Seri
-                        if (req.details.includes("Rút thẻ cào")) {
-                            const network = req.details.includes("VIETTEL") ? "VIETTEL" : 
-                                            (req.details.includes("MOBIFONE") ? "MOBIFONE" : "VIETNAMOBILE");
-                            
-                            let pin = "", serial = "";
-                            if (network === "VIETTEL") {
-                                pin = Math.floor(Math.random() * 900000000000000 + 100000000000000).toString();
-                                serial = "1000" + Math.floor(Math.random() * 90000000 + 10000000).toString();
-                            } else if (network === "MOBIFONE") {
-                                pin = Math.floor(Math.random() * 900000000000 + 100000000000).toString();
-                                serial = "50" + Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
-                            } else {
-                                pin = Math.floor(Math.random() * 900000000000 + 100000000000).toString();
-                                serial = "0" + Math.floor(Math.random() * 90000000000 + 10000000000).toString();
-                            }
-                            req.details += `\n--- MÃ THẺ ĐÃ DUYỆT ---\nPIN: ${pin}\nSERI: ${serial}`;
+            if (action === 'approved' && user) {
+                if (req.type === 'deposit') {
+                    user.balance += req.amount;
+                } else if (req.type === 'withdraw') {
+                    user.balance -= req.amount;
+                    if (req.details.includes("Rút thẻ cào")) {
+                        const network = req.details.includes("VIETTEL") ? "VIETTEL" : 
+                                        (req.details.includes("MOBIFONE") ? "MOBIFONE" : "VIETNAMOBILE");
+                        let pin = "", serial = "";
+                        if (network === "VIETTEL") {
+                            pin = Math.floor(Math.random() * 900000000000000 + 100000000000000).toString();
+                            serial = "1000" + Math.floor(Math.random() * 90000000 + 10000000).toString();
+                        } else if (network === "MOBIFONE") {
+                            pin = Math.floor(Math.random() * 900000000000 + 100000000000).toString();
+                            serial = "50" + Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
+                        } else {
+                            pin = Math.floor(Math.random() * 900000000000 + 100000000000).toString();
+                            serial = "0" + Math.floor(Math.random() * 90000000000 + 10000000000).toString();
                         }
+                        req.details += `\n--- MÃ THẺ ĐÃ DUYỆT ---\nPIN: ${pin}\nSERI: ${serial}`;
                     }
                 }
+                await user.save();
             }
+            await req.save();
             
-            writeDB(db);
-            // Gửi tin vui cho người chơi
             io.emit('requestResult', { 
-                requestId, 
-                status: action, 
-                username: req.username, 
-                newBalance: db.users[req.username].balance,
-                updatedDetails: req.details // Gửi thêm chi tiết mã thẻ mới sinh
+                requestId, status: action, username: req.username, 
+                newBalance: user ? user.balance : 0, updatedDetails: req.details 
             });
-            // Cập nhật lại bảng cho Admin
-            io.emit('allRequests', db.transactions);
+            const allTrans = await Transaction.find();
+            io.emit('allRequests', allTrans);
         }
     });
 
-    // Cập nhật số dư từ Game (Thắng/Thua)
-    socket.on('updateBalance', ({ username, newBalance }) => {
-        let db = readDB();
-        if (db.users[username]) {
-            db.users[username].balance = parseInt(newBalance);
-            writeDB(db);
-            // Thông báo cho tất cả các thiết bị khác của người này (nếu có)
+    // Cập nhật số dư từ Game
+    socket.on('updateBalance', async ({ username, newBalance }) => {
+        const user = await User.findOne({ username });
+        if (user) {
+            user.balance = parseInt(newBalance);
+            await user.save();
             io.emit('balanceUpdate', { username, newBalance });
-            console.log(`Balance Updated: ${username} -> ${newBalance}`);
         }
     });
 
