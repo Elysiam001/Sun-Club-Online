@@ -1,76 +1,106 @@
 const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
-const cors = require('cors');
 const path = require('path');
+const mongoose = require('mongoose');
 const fs = require('fs');
 
 const app = express();
-app.use(cors());
-app.use(express.static(path.join(__dirname, '.')));
-
 const server = http.createServer(app);
-const io = new Server(server, {
-    cors: { origin: "*", methods: ["GET", "POST"] }
+const io = new Server(server);
+
+// --- KẾT NỐI MONGODB (BẤT TỬ) ---
+const MONGO_URI = 'mongodb+srv://admin:123456bg@cluster0.ky7yose.mongodb.net/sun-club?retryWrites=true&w=majority&appName=Cluster0';
+
+console.log('🚀 Đang bắt đầu kết nối MongoDB...');
+
+mongoose.connect(MONGO_URI)
+    .then(() => {
+        console.log('✅ Đã kết nối MongoDB Atlas thành công!');
+        migrateData();
+    })
+    .catch(err => {
+        console.error('❌ LỖI KẾT NỐI MONGODB:', err.message);
+    });
+
+// --- ĐỊNH NGHĨA CẤU TRÚC DỮ LIỆU (SCHEMAS) ---
+const userSchema = new mongoose.Schema({
+    username: { type: String, unique: true, required: true },
+    password: { type: String, required: true },
+    balance: { type: Number, default: 5000000 },
+    role: { type: String, default: 'user' }
 });
+const User = mongoose.model('User', userSchema);
 
-const DB_FILE = path.join(__dirname, 'db.json');
+const transactionSchema = new mongoose.Schema({
+    id: Number,
+    username: String,
+    amount: Number,
+    type: String, // 'deposit', 'withdraw'
+    status: { type: String, default: 'pending' },
+    details: String,
+    time: String,
+    notified: { type: Boolean, default: false }
+});
+const Transaction = mongoose.model('Transaction', transactionSchema);
 
-// Khởi tạo DB nếu chưa có
-if (!fs.existsSync(DB_FILE)) {
-    fs.writeFileSync(DB_FILE, JSON.stringify({ users: {}, transactions: [] }, null, 2));
+// --- DI CƯ DỮ LIỆU TỪ DB.JSON ---
+async function migrateData() {
+    try {
+        const userCount = await User.countDocuments();
+        if (userCount === 0 && fs.existsSync('db.json')) {
+            console.log('📦 Đang di cư dữ liệu từ db.json sang MongoDB...');
+            const db = JSON.parse(fs.readFileSync('db.json', 'utf8'));
+            
+            // Di cư Users
+            for (let uname in db.users) {
+                await new User({ 
+                    username: uname, 
+                    password: db.users[uname].password,
+                    balance: db.users[uname].balance || 0,
+                    role: db.users[uname].role || 'user'
+                }).save();
+            }
+            // Di cư Transactions
+            if (db.transactions && db.transactions.length > 0) {
+                await Transaction.insertMany(db.transactions);
+            }
+            console.log('✅ Di cư hoàn tất!');
+        }
+    } catch (err) {
+        console.error('❌ Lỗi di cư dữ liệu:', err);
+    }
 }
 
-function readDB() {
-    return JSON.parse(fs.readFileSync(DB_FILE, 'utf8'));
-}
-
-function writeDB(data) {
-    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2));
-}
-
-const PORT = process.env.PORT || 3000;
+app.use(express.static(path.join(__dirname)));
 
 io.on('connection', (socket) => {
-    console.log(`User connected: ${socket.id}`);
+    // Đăng ký
+    socket.on('register', async ({ username, password }) => {
+        try {
+            const existingUser = await User.findOne({ username });
+            if (existingUser) {
+                socket.emit('register_result', { success: false, message: 'Tài khoản đã tồn tại!' });
+            } else {
+                await new User({ username, password }).save();
+                socket.emit('register_result', { success: true, message: 'Đăng ký thành công!' });
+            }
+        } catch (err) {
+            socket.emit('register_result', { success: false, message: 'Lỗi hệ thống!' });
+        }
+    });
 
-    // Đăng nhập/Xác thực (Check password)
-    socket.on('login_check', ({ username, password }) => {
-        let db = readDB();
-        if (db.users[username] && db.users[username].password === password) {
-            socket.emit('login_result', { success: true, username });
+    // Kiểm tra đăng nhập
+    socket.on('login_check', async ({ username, password }) => {
+        const user = await User.findOne({ username, password });
+        if (user) {
+            socket.emit('login_result', { success: true, username: user.username });
         } else {
-            socket.emit('login_result', { success: false, message: 'Sai tài khoản hoặc mật khẩu.' });
-        }
-    });
-
-    // Đăng ký tài khoản mới
-    socket.on('register', ({ username, password }) => {
-        let db = readDB();
-        if (db.users[username]) {
-            socket.emit('register_result', { success: false, message: 'Tài khoản đã tồn tại.' });
-            return;
-        }
-
-        // Khởi tạo tài khoản mới với 5 triệu VNĐ
-        db.users[username] = {
-            password: password,
-            balance: 5000000
-        };
-        writeDB(db);
-        socket.emit('register_result', { success: true, message: 'Đăng ký thành công!' });
-        console.log(`User Registered: ${username}`);
-    });
-
-    // Lấy dữ liệu khi vào Lobby
-    socket.on('login', ({ username }) => {
-        let db = readDB();
-        if (!db.users[username]) {
             socket.emit('login_result', { success: false, message: 'Sai tài khoản hoặc mật khẩu!' });
         }
     });
 
-    // Lấy thông tin khi vào Sảnh/Game
+    // Vào Sảnh/Game
     socket.on('login', async ({ username }) => {
         const user = await User.findOne({ username });
         if (user) {
@@ -83,7 +113,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Gửi yêu cầu Nạp tiền
+    // Gửi yêu cầu Nạp
     socket.on('submitDeposit', async (data) => {
         const newReq = new Transaction({
             id: Date.now(),
@@ -98,7 +128,7 @@ io.on('connection', (socket) => {
         io.emit('newRequestAlert', newReq);
     });
 
-    // Gửi yêu cầu Rút tiền
+    // Gửi yêu cầu Rút
     socket.on('submitWithdraw', async (data) => {
         const newReq = new Transaction({
             id: Date.now(),
@@ -113,13 +143,13 @@ io.on('connection', (socket) => {
         io.emit('newRequestAlert', newReq);
     });
 
-    // ADMIN LẤY TOÀN BỘ YÊU CẦU
+    // Admin lấy danh sách
     socket.on('adminGetRequests', async () => {
         const allTrans = await Transaction.find();
         socket.emit('allRequests', allTrans);
     });
 
-    // ADMIN DUYỆT GIAO DỊCH
+    // Admin duyệt
     socket.on('adminAction', async ({ requestId, action }) => {
         const req = await Transaction.findOne({ id: requestId });
         if (req && req.status === 'pending') {
@@ -161,7 +191,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Cập nhật số dư từ Game
+    // Thắng/Thua Tài Xỉu
     socket.on('updateBalance', async ({ username, newBalance }) => {
         const user = await User.findOne({ username });
         if (user) {
@@ -171,11 +201,10 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('disconnect', () => {
-        console.log('User disconnected');
-    });
+    socket.on('disconnect', () => {});
 });
 
+const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
 });
