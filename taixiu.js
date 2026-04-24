@@ -165,6 +165,10 @@ document.querySelectorAll('.chip').forEach(chip => {
 document.getElementById('side-tai').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
     
+    // Hiệu ứng chọn bên
+    document.getElementById('side-tai').classList.add('selected');
+    document.getElementById('side-xiu').classList.remove('selected');
+
     // Kiểm tra số dư: Tổng cược (Dự kiến + Đã xác nhận) không được quá số dư
     let totalBetting = pendingBetTai + pendingBetXiu + confirmedBetTai + confirmedBetXiu;
     if (totalBetting + selectedChipVal > getBalance()) {
@@ -181,6 +185,10 @@ document.getElementById('side-tai').addEventListener('click', () => {
 
 document.getElementById('side-xiu').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
+
+    // Hiệu ứng chọn bên
+    document.getElementById('side-xiu').classList.add('selected');
+    document.getElementById('side-tai').classList.remove('selected');
 
     // Kiểm tra số dư
     let totalBetting = pendingBetTai + pendingBetXiu + confirmedBetTai + confirmedBetXiu;
@@ -293,6 +301,8 @@ socket.on('taixiuTick', (data) => {
             bowl.classList.add('hidden');
             document.getElementById('side-tai').classList.remove('winner-blink');
             document.getElementById('side-xiu').classList.remove('winner-blink');
+            document.getElementById('side-tai').classList.remove('selected');
+            document.getElementById('side-xiu').classList.remove('selected');
             
             pendingBetTai = 0;
             pendingBetXiu = 0;

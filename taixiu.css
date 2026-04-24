@@ -105,9 +105,11 @@ html, body {
 }
 
 .bet-side.selected {
-    border-color: var(--gold-light);
-    background: rgba(255,215,0,0.1);
-    box-shadow: 0 0 20px rgba(255,215,0,0.3);
+    border-color: #ffd700;
+    background: rgba(255, 215, 0, 0.15);
+    box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.4);
+    transform: scale(1.05);
+    z-index: 10;
 }
 
 .users-count {
