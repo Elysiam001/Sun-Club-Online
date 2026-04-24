@@ -244,6 +244,105 @@ html, body {
 .floating-result.win { color: #ffd700; }
 .floating-result.lose { color: #ff3333; }
 
+/* --- CHAT CONTAINER PREMIUM --- */
+.chat-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 280px;
+    height: 400px;
+    background: rgba(0, 0, 0, 0.85);
+    border: 2px solid var(--gold-dark);
+    border-radius: 15px;
+    display: flex;
+    flex-direction: column;
+    z-index: 1000;
+    transition: all 0.3s ease;
+    box-shadow: 0 0 20px rgba(0,0,0,0.5);
+    backdrop-filter: blur(10px);
+}
+
+.chat-container.minimized {
+    height: 45px;
+    overflow: hidden;
+}
+
+.chat-header {
+    padding: 10px 15px;
+    background: linear-gradient(to bottom, #4a2a10, #1a0500);
+    border-bottom: 1px solid var(--gold-dark);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #ffd700;
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 13px 13px 0 0;
+}
+
+.chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.chat-item {
+    font-size: 13px;
+    color: #eee;
+    word-break: break-all;
+}
+
+.chat-item .username {
+    color: #ffd700;
+    font-weight: bold;
+    margin-right: 5px;
+}
+
+.chat-item.system {
+    color: #aaa;
+    font-style: italic;
+    text-align: center;
+}
+
+.chat-input-area {
+    padding: 10px;
+    border-top: 1px solid rgba(255,215,0,0.2);
+    display: flex;
+    gap: 5px;
+}
+
+#chat-input {
+    flex: 1;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid var(--gold-dark);
+    border-radius: 20px;
+    padding: 5px 12px;
+    color: #fff;
+    outline: none;
+}
+
+#btn-send-chat {
+    background: var(--gold-dark);
+    border: none;
+    color: #000;
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+/* ẨN CHAT TRÊN ĐIỆN THOẠI QUÁ NHỎ HOẶC ĐỂ SẾP TỰ MỞ */
+@media screen and (max-width: 600px) {
+    .chat-container {
+        width: 200px;
+        right: 10px;
+        bottom: 10px;
+    }
+}
+
 @keyframes floatUp {
     0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
     20% { transform: translate(-50%, -80%) scale(1.2); opacity: 1; }

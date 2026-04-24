@@ -246,51 +246,46 @@ io.on('connection', (socket) => {
 });
 
 // --- QUẢN LÝ GAME TÀI XỈU (VÒNG LẶP VĨNH CỬU) ---
-let taixiuState = {
-    timer: 25,
-    phase: 'betting', // 'betting', 'result'
-    dices: [1, 1, 1],
+const taixiuState = {
+    timer: 60,
+    phase: 'betting',
+    dices: [1, 2, 3],
     totalPool: { tai: 0, xiu: 0 },
     totalUsers: { tai: 0, xiu: 0 },
-    bets: {}, // { username: { tai: 0, xiu: 0 } }
+    bets: {},
     history: [],
-    pendingPayouts: [] // Lưu người thắng để cộng tiền vào ván sau
+    pendingPayouts: [],
+    // Số liệu ảo
+    fakeTai: { users: 1500, pool: 500000000 },
+    fakeXiu: { users: 1200, pool: 450000000 }
 };
 
 function taixiuLoop() {
     taixiuState.timer--;
 
-    if (taixiuState.timer <= 0) {
-        if (taixiuState.phase === 'betting') {
-            // Chuyển sang giai đoạn kết quả
-            taixiuState.phase = 'result';
-            taixiuState.timer = 10; 
+    if (taixiuState.phase === 'betting') {
+        // Nhảy số ảo cho sinh động
+        taixiuState.fakeTai.users += Math.floor(Math.random() * 5);
+        taixiuState.fakeXiu.users += Math.floor(Math.random() * 5);
+        taixiuState.fakeTai.pool += Math.floor(Math.random() * 10) * 1000000;
+        taixiuState.fakeXiu.pool += Math.floor(Math.random() * 10) * 1000000;
 
-            // Quay xúc xắc
+        if (taixiuState.timer <= 0) {
+            taixiuState.phase = 'result';
+            taixiuState.timer = 15;
             taixiuState.dices = [
                 Math.floor(Math.random() * 6) + 1,
                 Math.floor(Math.random() * 6) + 1,
                 Math.floor(Math.random() * 6) + 1
             ];
-
-            const total = taixiuState.dices[0] + taixiuState.dices[1] + taixiuState.dices[2];
-            const isTai = total >= 11;
-            const isXiu = total <= 10;
-
-            // Tính toán người thắng (nhưng chưa cộng tiền ngay)
-            calculateWinners(isTai, isXiu, total);
-
-            // Gửi kết quả
-            io.emit('taixiuResult', {
-                dices: taixiuState.dices,
-                total: total,
-                isTai: isTai
-            });
-
-            taixiuState.history.push({ total, isTai });
-            if (taixiuState.history.length > 20) taixiuState.history.shift();
-
-        } else {
+        }
+    } else {
+        if (taixiuState.timer <= 0) {
+            taixiuState.phase = 'betting';
+            taixiuState.timer = 60;
+            // Reset số liệu ảo ván mới
+            taixiuState.fakeTai = { users: 1000 + Math.floor(Math.random() * 500), pool: Math.floor(Math.random() * 300) * 1000000 };
+            taixiuState.fakeXiu = { users: 1000 + Math.floor(Math.random() * 500), pool: Math.floor(Math.random() * 300) * 1000000 };
             // --- BẮT ĐẦU VÁN MỚI: CỘNG TIỀN THẮNG TẠI ĐÂY ---
             executePayouts();
 

@@ -319,15 +319,100 @@ socket.emit('taixiuJoin');
 let lastPhase = ''; // Thêm biến để theo dõi sự thay đổi giai đoạn
 
 socket.on('taixiuTick', (data) => {
-    if (data.phase === 'betting') {
-        currentPhase = 'betting';
-        timerDisplay.classList.remove('hidden');
-        timerDisplay.textContent = data.timer;
-        
-        // CHỈ RESET KHI BẮT ĐẦU VÁN MỚI (CHUYỂN TỪ RESULT SANG BETTING)
-        if (lastPhase !== 'betting') {
-            diceScene.classList.add('hidden');
-            bowl.classList.add('hidden');
+    // Cập nhật Timer
+    const timerEl = document.getElementById('countdown-timer');
+    if (timerEl) timerEl.textContent = data.timer;
+    
+    // Cập nhật số liệu ảo từ Server gửi về
+    const usersTaiEl = document.getElementById('users-tai');
+    const usersXiuEl = document.getElementById('users-xiu');
+    const poolTaiEl = document.getElementById('tai-total-pool');
+    const poolXiuEl = document.getElementById('xiu-total-pool');
+
+    if (usersTaiEl && data.fakeTai) usersTaiEl.innerHTML = `<i class="fa-solid fa-users"></i> ${data.fakeTai.users.toLocaleString()}`;
+    if (usersXiuEl && data.fakeXiu) usersXiuEl.innerHTML = `<i class="fa-solid fa-users"></i> ${data.fakeXiu.users.toLocaleString()}`;
+    if (poolTaiEl && data.fakeTai) poolTaiEl.textContent = data.fakeTai.pool.toLocaleString();
+    if (poolXiuEl && data.fakeXiu) poolXiuEl.textContent = data.fakeXiu.pool.toLocaleString();
+
+    // Đồng bộ giai đoạn game
+    if (data.phase !== lastPhase) {
+        lastPhase = data.phase;
+        if (data.phase === 'betting') {
+            startNewRound(data);
+        } else {
+            openBowl(data);
+        }
+    }
+});
+
+// --- LOGIC KÊNH CHAT ---
+function toggleChat() {
+    const chat = document.getElementById('chat-container');
+    chat.classList.toggle('minimized');
+    const btn = chat.querySelector('.chat-toggle-btn i');
+    if (chat.classList.contains('minimized')) {
+        btn.className = 'fa-solid fa-chevron-up';
+    } else {
+        btn.className = 'fa-solid fa-chevron-down';
+        // Cuộn xuống cuối khi mở
+        const msgArea = document.getElementById('chat-messages');
+        msgArea.scrollTop = msgArea.scrollHeight;
+    }
+}
+
+function addChatMessage(username, message, isSystem = false) {
+    const msgArea = document.getElementById('chat-messages');
+    const item = document.createElement('div');
+    item.className = `chat-item ${isSystem ? 'system' : ''}`;
+    
+    if (isSystem) {
+        item.textContent = message;
+    } else {
+        item.innerHTML = `<span class="username">${username}:</span> ${message}`;
+    }
+    
+    msgArea.appendChild(item);
+    msgArea.scrollTop = msgArea.scrollHeight;
+    
+    // Giới hạn 50 tin nhắn cho đỡ nặng
+    if (msgArea.children.length > 50) msgArea.removeChild(msgArea.firstChild);
+}
+
+document.getElementById('btn-send-chat').addEventListener('click', sendMyChat);
+document.getElementById('chat-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMyChat();
+});
+
+function sendMyChat() {
+    const input = document.getElementById('chat-input');
+    const msg = input.value.trim();
+    if (msg) {
+        addChatMessage(currentUser || 'Khách', msg);
+        input.value = '';
+    }
+}
+
+// --- HỆ THỐNG CHIM MỒI (FAKE CHAT) ---
+const fakeChats = [
+    { n: 'Trùm Tài Xỉu', m: 'Tay này Xỉu đẹp anh em ơi!' },
+    { n: 'BeHeo9x', m: 'Tài đi, nãy giờ bệt Xỉu rồi.' },
+    { n: 'Thần Bài', m: 'Húp mạnh thôi!' },
+    { n: 'Đại Gia Phố Núi', m: 'Vừa tất tay Tài 100M, run quá.' },
+    { n: 'Kiếm Thế', m: 'Cầu này khó đoán quá.' },
+    { n: 'Công Tử Bạc Liêu', m: 'Mới húp 50M, rủ anh em đi nhậu.' },
+    { n: 'Gà Con', m: 'Cho em xin lộc với ạ!' },
+    { n: 'Sói Độc Hành', m: 'Xỉu chắc rồi, đừng cãi.' }
+];
+
+function startFakeChat() {
+    const delay = Math.floor(Math.random() * 5000) + 3000; // 3-8 giây có 1 tin nhắn
+    setTimeout(() => {
+        const chat = fakeChats[Math.floor(Math.random() * fakeChats.length)];
+        addChatMessage(chat.n, chat.m);
+        startFakeChat();
+    }, delay);
+}
+startFakeChat();
             document.getElementById('side-tai').classList.remove('winner-blink');
             document.getElementById('side-xiu').classList.remove('winner-blink');
             document.getElementById('side-tai').classList.remove('selected');

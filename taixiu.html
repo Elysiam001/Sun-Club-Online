@@ -212,6 +212,21 @@
         </div>
     </div>
 
+    <!-- KÊNH CHAT TÀI XỈU -->
+    <div id="chat-container" class="chat-container minimized">
+        <div class="chat-header" onclick="toggleChat()">
+            <i class="fa-solid fa-comments"></i> KÊNH CHAT
+            <button class="chat-toggle-btn"><i class="fa-solid fa-chevron-up"></i></button>
+        </div>
+        <div class="chat-messages" id="chat-messages">
+            <div class="chat-item system">Chào mừng sếp đến với kênh chat!</div>
+        </div>
+        <div class="chat-input-area">
+            <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." maxlength="50">
+            <button id="btn-send-chat"><i class="fa-solid fa-paper-plane"></i></button>
+        </div>
+    </div>
+
     <!-- Custom Notification Modal -->
     <div id="custom-alert-modal" class="modal-overlay hidden">
         <div class="modal-content premium-alert">
