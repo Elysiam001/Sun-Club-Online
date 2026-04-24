@@ -24,6 +24,34 @@
             }
             lastTouchEnd = now;
         }, false);
+
+        // TỰ ĐỘNG CĂN CHỈNH KÍCH THƯỚC (RESPONSIVE)
+        function autoScaleGame() {
+            const wrapper = document.querySelector('.game-wrapper');
+            if (!wrapper) return;
+
+            const winW = window.innerWidth;
+            const winH = window.innerHeight;
+            
+            // Kích thước chuẩn của thiết kế
+            const designW = 950; 
+            const designH = 680;
+
+            const scaleW = winW / designW;
+            const scaleH = winH / designH;
+            
+            // Chọn tỷ lệ nhỏ nhất để đảm bảo không bị cắt
+            let finalScale = Math.min(scaleW, scaleH);
+            
+            // Không cho phóng to quá 1.1 lần trên máy tính to
+            if (finalScale > 1.1) finalScale = 1.1;
+
+            wrapper.style.transform = `scale(${finalScale})`;
+        }
+
+        window.addEventListener('resize', autoScaleGame);
+        window.addEventListener('orientationchange', () => setTimeout(autoScaleGame, 200));
+        document.addEventListener('DOMContentLoaded', autoScaleGame);
     </script>
 </head>
 <body>

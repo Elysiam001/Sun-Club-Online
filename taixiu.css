@@ -31,36 +31,68 @@ html, body {
     box-shadow: 0 0 10px rgba(0,0,0,0.8);
 }
 
-.game-wrapper {
-    width: 100%;
-    max-width: 900px;
-    padding: 20px;
-    perspective: 1000px;
-    margin: 0 auto;
-    transition: transform 0.3s ease;
-}
-
-/* TỰ ĐỘNG THU NHỎ TRÊN ĐIỆN THOẠI (DƯỚI 600PX CHIỀU CAO HOẶC 900PX CHIỀU RỘNG) */
-@media (max-width: 900px), (max-height: 600px) {
+/* TỐI ƯU HÓA CHO ĐIỆN THOẠI XOAY NGANG (MÀN HÌNH THẤP) */
+@media screen and (max-height: 500px) {
     .game-wrapper {
-        transform: scale(0.75); /* Thu nhỏ lại 75% */
-        transform-origin: center center;
+        padding: 5px;
+        transform: scale(0.85);
+        transform-origin: center top;
     }
-    
+
     .game-board-premium {
-        border-radius: 40px; /* Thu nhỏ bo góc cho đỡ chiếm chỗ */
-        padding: 10px;
+        border-width: 4px;
+        border-radius: 30px;
+        padding: 5px;
     }
-    
+
+    .board-header {
+        margin-bottom: 5px;
+        padding: 0 10px;
+    }
+
+    .center-circle {
+        width: 120px;
+        height: 120px;
+        margin: 0 10px;
+    }
+
+    .timer-text {
+        font-size: 40px;
+    }
+
+    .bet-area {
+        gap: 10px;
+        padding: 0 10px;
+    }
+
     .side-title {
-        font-size: 50px; /* Thu nhỏ chữ Tài Xỉu một chút */
+        font-size: 35px;
+    }
+
+    .chip-selection {
+        margin-top: 5px;
+        gap: 5px;
+    }
+
+    .chip {
+        width: 45px;
+        height: 45px;
+    }
+
+    .bet-controls {
+        margin-top: 5px;
+    }
+
+    .btn-action {
+        padding: 8px 15px;
+        font-size: 14px;
     }
 }
 
-/* THU NHỎ THÊM CHO MÀN HÌNH CỰC NHỎ */
-@media (max-width: 600px) {
+/* THU NHỎ THÊM NẾU MÀN HÌNH QUÁ BÉ */
+@media screen and (max-height: 400px) {
     .game-wrapper {
-        transform: scale(0.65);
+        transform: scale(0.7);
     }
 }
 
