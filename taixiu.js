@@ -158,11 +158,11 @@ document.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
         document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
         chip.classList.add('active');
-        selectedChipVal = parseInt(chip.dataset.value);
+        selectedChipVal = parseInt(chip.dataset.val); // Đã sửa từ data-value thành data-val
     });
 });
 
-document.getElementById('bet-side-tai').addEventListener('click', () => {
+document.getElementById('side-tai').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
     if (selectedChipVal > 0) {
         pendingBetTai += selectedChipVal;
@@ -170,7 +170,7 @@ document.getElementById('bet-side-tai').addEventListener('click', () => {
     }
 });
 
-document.getElementById('bet-side-xiu').addEventListener('click', () => {
+document.getElementById('side-xiu').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
     if (selectedChipVal > 0) {
         pendingBetXiu += selectedChipVal;
@@ -250,14 +250,14 @@ socket.on('taixiuTick', (data) => {
         // Dọn sạch bàn chơi cho ván mới
         diceScene.classList.add('hidden');
         bowl.classList.add('hidden');
-        document.getElementById('bet-side-tai').classList.remove('winner-blink');
-        document.getElementById('bet-side-xiu').classList.remove('winner-blink');
+        document.getElementById('side-tai').classList.remove('winner-blink');
+        document.getElementById('side-xiu').classList.remove('winner-blink');
         
-        // Cập nhật số người và Pool (Giữ nguyên icon của sếp)
+        // Cập nhật số người và Pool (Giữ nguyên icon và bố cục của sếp)
         document.getElementById('tai-total-pool').textContent = data.totalPool.tai.toLocaleString('vi-VN');
         document.getElementById('xiu-total-pool').textContent = data.totalPool.xiu.toLocaleString('vi-VN');
-        document.getElementById('users-tai').textContent = data.totalUsers.tai.toLocaleString('vi-VN');
-        document.getElementById('users-xiu').textContent = data.totalUsers.xiu.toLocaleString('vi-VN');
+        document.getElementById('users-tai').innerHTML = `<i class="fa-solid fa-users"></i> ${data.totalUsers.tai.toLocaleString('vi-VN')}`;
+        document.getElementById('users-xiu').innerHTML = `<i class="fa-solid fa-users"></i> ${data.totalUsers.xiu.toLocaleString('vi-VN')}`;
     } else {
         timerDisplay.classList.add('hidden');
     }
@@ -361,8 +361,8 @@ function finalizeResult() {
         let isTai = currentResultTotal >= 11;
         let isXiu = currentResultTotal <= 10;
         
-        if (isTai) document.getElementById('bet-side-tai').classList.add('winner-blink');
-        if (isXiu) document.getElementById('bet-side-xiu').classList.add('winner-blink');
+        if (isTai) document.getElementById('side-tai').classList.add('winner-blink');
+        if (isXiu) document.getElementById('side-xiu').classList.add('winner-blink');
         
         updateHistoryDotsOnClient();
     }, 500);
