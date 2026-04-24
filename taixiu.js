@@ -362,6 +362,51 @@ function finalizeResult() {
     }, 500);
 }
 
+// --- LOGIC KÉO MỞ BÁT ---
+let isDragging = false;
+let startX = 0, startY = 0;
+let currentX = 0, currentY = 0;
+
+function handleDragStart(e) {
+    if (currentPhase !== 'revealing') return;
+    isDragging = true;
+    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    startX = clientX - currentX;
+    startY = clientY - currentY;
+    bowl.style.transition = 'none';
+}
+
+function handleDragMove(e) {
+    if (!isDragging || currentPhase !== 'revealing') return;
+    e.preventDefault();
+    let clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    let clientY = e.touches ? e.touches[0].clientY : e.clientY;
+    currentX = clientX - startX;
+    currentY = clientY - startY;
+    bowl.style.transform = `translate(${currentX}px, ${currentY}px)`;
+}
+
+function handleDragEnd() {
+    if (!isDragging || currentPhase !== 'revealing') return;
+    isDragging = false;
+    let distance = Math.sqrt(currentX * currentX + currentY * currentY);
+    if (distance > 100) {
+        finalizeResult();
+    } else {
+        bowl.style.transition = 'transform 0.3s ease';
+        currentX = 0; currentY = 0;
+        bowl.style.transform = `translate(0px, 0px)`;
+    }
+}
+
+bowl.addEventListener('mousedown', handleDragStart);
+document.addEventListener('mousemove', handleDragMove);
+document.addEventListener('mouseup', handleDragEnd);
+bowl.addEventListener('touchstart', handleDragStart);
+document.addEventListener('touchmove', handleDragMove, {passive: false});
+document.addEventListener('touchend', handleDragEnd);
+
 function updateHistoryDotsOnClient() {
     // Phần này sếp có thể cập nhật từ Server gửi về cho chuẩn hơn
 }
