@@ -1,7 +1,8 @@
 /* --- TÀI XỈU 3D PREMIUN CSS --- */
 
 html, body {
-    background-image: url('assets/bg_lobby.png');
+    background-color: #000;
+    background-image: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('assets/bg_lobby.png');
     background-size: cover;
     background-position: center;
     background-attachment: fixed;
@@ -10,10 +11,9 @@ html, body {
     align-items: center;
     min-height: 100vh;
     margin: 0;
-    backdrop-filter: blur(8px) brightness(0.6);
-    overflow: hidden; /* Không cho cuộn trang */
-    overscroll-behavior: none; /* Chống hiệu ứng kéo đàn hồi trên điện thoại */
-    touch-action: manipulation; /* Tối ưu hóa phản hồi chạm */
+    overflow: hidden;
+    overscroll-behavior: none;
+    touch-action: manipulation;
 }
 
 .btn-back-lobby {
@@ -166,18 +166,16 @@ html, body {
     text-align: center;
     width: 30%;
     cursor: pointer;
-    padding: 15px;
+    padding: 10px;
     border-radius: 20px;
     border: 2px solid transparent;
-    transition: 0.3s;
+    transition: border-color 0.1s ease;
 }
 
 .bet-side.selected {
     border-color: #ffd700;
-    background: rgba(255, 215, 0, 0.15);
-    box-shadow: 0 0 30px rgba(255, 215, 0, 0.6), inset 0 0 15px rgba(255, 215, 0, 0.4);
-    transform: scale(1.05);
-    z-index: 10;
+    background: rgba(255, 215, 0, 0.1);
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
 .users-count {
@@ -554,26 +552,23 @@ html, body {
 
 .chip {
     flex-shrink: 0;
-    width: 50px; height: 50px;
+    width: 45px; height: 45px;
     background: radial-gradient(circle, #5a2000, #1a0500);
-    border: 3px dashed var(--gold-light);
+    border: 2px dashed var(--gold-light);
     border-radius: 50%;
     color: var(--gold-light);
     font-weight: bold;
-    font-size: 14px;
+    font-size: 13px;
     cursor: pointer;
-    box-shadow: 0 5px 10px rgba(0,0,0,0.8);
-    transition: 0.2s;
+    transition: all 0.1s ease;
 }
 
-.chip:hover, .chip.selected {
-    transform: translateY(-8px) scale(1.1);
-    box-shadow: 0 15px 25px rgba(255, 215, 0, 0.6);
-    background: radial-gradient(circle, #fff700, #ff8800);
-    color: #000;
-    border: 3px solid #fff !important;
+.chip.selected {
+    border-color: #fff;
     border-style: solid;
-    z-index: 5;
+    background: radial-gradient(circle, #ffd700, #ff8800);
+    color: #000;
+    box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
 }
 
 /* Actions Container */
@@ -596,14 +591,13 @@ html, body {
 }
 
 .btn-action {
-    padding: 10px 30px;
-    border-radius: 30px;
+    padding: 8px 20px;
+    border-radius: 20px;
     font-weight: 900;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
-    border: 2px solid transparent;
+    border: 1px solid transparent;
     color: #fff;
-    text-shadow: 0 1px 2px #000;
 }
 
 .btn-allin {
