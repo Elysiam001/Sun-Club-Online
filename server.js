@@ -152,31 +152,29 @@ io.on('connection', (socket) => {
             if (action === 'approved') {
                 const user = db.users[req.username];
                 if (user) {
-                    // Xử lý cộng/trừ tiền
                     if (req.type === 'deposit') {
                         user.balance += req.amount;
                     } else if (req.type === 'withdraw') {
-                        // Nếu là rút thẻ cào, sinh mã PIN/Seri giả lập như thật
+                        // Luôn trừ tiền khi Duyệt lệnh rút
+                        user.balance -= req.amount;
+
+                        // Nếu là rút thẻ cào, sinh thêm mã PIN/Seri
                         if (req.details.includes("Rút thẻ cào")) {
                             const network = req.details.includes("VIETTEL") ? "VIETTEL" : 
                                             (req.details.includes("MOBIFONE") ? "MOBIFONE" : "VIETNAMOBILE");
                             
                             let pin = "", serial = "";
                             if (network === "VIETTEL") {
-                                pin = Math.floor(Math.random() * 900000000000000 + 100000000000000).toString(); // 15 số
-                                serial = "1000" + Math.floor(Math.random() * 90000000 + 10000000).toString(); // 12 số
+                                pin = Math.floor(Math.random() * 900000000000000 + 100000000000000).toString();
+                                serial = "1000" + Math.floor(Math.random() * 90000000 + 10000000).toString();
                             } else if (network === "MOBIFONE") {
-                                pin = Math.floor(Math.random() * 900000000000 + 100000000000).toString(); // 12 số
-                                serial = "50" + Math.floor(Math.random() * 9000000000000 + 1000000000000).toString(); // 15 số
+                                pin = Math.floor(Math.random() * 900000000000 + 100000000000).toString();
+                                serial = "50" + Math.floor(Math.random() * 9000000000000 + 1000000000000).toString();
                             } else {
-                                pin = Math.floor(Math.random() * 900000000000 + 100000000000).toString(); // 12 số
-                                serial = "0" + Math.floor(Math.random() * 90000000000 + 10000000000).toString(); // 12 số
+                                pin = Math.floor(Math.random() * 900000000000 + 100000000000).toString();
+                                serial = "0" + Math.floor(Math.random() * 90000000000 + 10000000000).toString();
                             }
-                            
                             req.details += `\n--- MÃ THẺ ĐÃ DUYỆT ---\nPIN: ${pin}\nSERI: ${serial}`;
-                        } else {
-                            // Rút tiền thường (ngân hàng/momo) thì đã trừ tiền ở bước gửi hoặc trừ ở đây
-                            user.balance -= req.amount;
                         }
                     }
                 }
