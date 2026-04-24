@@ -156,8 +156,8 @@ document.getElementById('btn-close-game').addEventListener('click', () => { wind
 // --- LẮP LẠI LOGIC CHỌN CHÍP VÀ ĐẶT CƯỢC ---
 document.querySelectorAll('.chip').forEach(chip => {
     chip.addEventListener('click', () => {
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
         selectedChipVal = parseInt(chip.dataset.val); // Đã sửa từ data-value thành data-val
     });
 });

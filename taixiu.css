@@ -372,12 +372,13 @@ html, body {
 }
 
 .chip:hover, .chip.selected {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 15px rgba(255,215,0,0.4);
-    background: radial-gradient(circle, #ffd700, #b8860b);
+    transform: translateY(-8px) scale(1.1);
+    box-shadow: 0 15px 25px rgba(255, 215, 0, 0.6);
+    background: radial-gradient(circle, #fff700, #ff8800);
     color: #000;
-    border-color: #fff;
+    border: 3px solid #fff !important;
     border-style: solid;
+    z-index: 5;
 }
 
 /* Actions Container */
