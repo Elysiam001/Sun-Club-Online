@@ -1,4 +1,4 @@
-// Authentication & Setup
+// --- TÀI XỈU 3D PREMIUN LOGIC (VERSION 2.0 - FIX ALL) ---
 const socket = io();
 const currentUser = sessionStorage.getItem('casino_currentUser');
 if (!currentUser) window.location.href = 'index.html';
@@ -18,7 +18,7 @@ let confirmedBetTai = 0;
 let confirmedBetXiu = 0;
 let selectedSide = null;
 
-// DOM Elements Cache
+// DOM Cache
 const dom = {
     balance: null, pTai: null, pXiu: null, mTai: null, mXiu: null,
     uT: null, uX: null, poolT: null, poolX: null,
@@ -42,25 +42,43 @@ function initDOMCache() {
     dom.dice1 = document.getElementById('dice-1');
     dom.dice2 = document.getElementById('dice-2');
     dom.dice3 = document.getElementById('dice-3');
-    dom.centerCircle = document.querySelector('.center-circle');
+    dom.centerCircle = document.getElementById('center-circle-area');
 }
-document.addEventListener('DOMContentLoaded', initDOMCache);
-initDOMCache();
+
+// Initialize on Load
+window.addEventListener('load', () => {
+    initDOMCache();
+    
+    // Tự động chọn chip đầu tiên cho sếp
+    const chips = document.querySelectorAll('.chip');
+    if (chips.length > 0) chips[0].click();
+
+    // Attach drag events
+    if (dom.bowl) {
+        dom.bowl.addEventListener('mousedown', onStart);
+        dom.bowl.addEventListener('touchstart', onStart, {passive: false});
+    }
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onEnd);
+    document.addEventListener('touchmove', onMove, {passive: false});
+    document.addEventListener('touchend', onEnd);
+});
 
 // Socket Events
 socket.emit('login', { username: currentUser });
 socket.on('loginSuccess', (data) => { if (data.username === currentUser) { serverBalance = data.balance; updateDisplay(); } });
 socket.on('balanceUpdate', (data) => { if (data.username === currentUser) { serverBalance = data.newBalance; updateDisplay(); } });
 
-// Stats state for smooth jumping numbers
+// Stats Management
 let targetStats = { taiUsers: 0, xiuUsers: 0, taiPool: 0, xiuPool: 0 };
 let displayStats = { taiUsers: 0, xiuUsers: 0, taiPool: 0, xiuPool: 0 };
 
 function updateSmoothStats() {
-    displayStats.taiUsers = Math.ceil(displayStats.taiUsers + (targetStats.taiUsers - displayStats.taiUsers) * 0.15);
-    displayStats.xiuUsers = Math.ceil(displayStats.xiuUsers + (targetStats.xiuUsers - displayStats.xiuUsers) * 0.15);
-    displayStats.taiPool = Math.ceil(displayStats.taiPool + (targetStats.taiPool - displayStats.taiPool) * 0.15);
-    displayStats.xiuPool = Math.ceil(displayStats.xiuPool + (targetStats.xiuPool - displayStats.xiuPool) * 0.15);
+    const speed = 0.15;
+    displayStats.taiUsers = Math.ceil(displayStats.taiUsers + (targetStats.taiUsers - displayStats.taiUsers) * speed);
+    displayStats.xiuUsers = Math.ceil(displayStats.xiuUsers + (targetStats.xiuUsers - displayStats.xiuUsers) * speed);
+    displayStats.taiPool = Math.ceil(displayStats.taiPool + (targetStats.taiPool - displayStats.taiPool) * speed);
+    displayStats.xiuPool = Math.ceil(displayStats.xiuPool + (targetStats.xiuPool - displayStats.xiuPool) * speed);
 
     if (dom.uT) dom.uT.innerHTML = `<i class="fa-solid fa-users"></i> ${displayStats.taiUsers.toLocaleString()}`;
     if (dom.uX) dom.uX.innerHTML = `<i class="fa-solid fa-users"></i> ${displayStats.xiuUsers.toLocaleString()}`;
@@ -78,20 +96,20 @@ socket.on('taixiuTick', (data) => {
         targetStats.taiPool = data.fakeTai.pool + data.totalPool.tai;
         targetStats.xiuPool = data.fakeXiu.pool + data.totalPool.xiu;
     }
+
     if (data.phase !== lastPhase) {
         lastPhase = data.phase;
         if (data.phase === 'betting') {
             currentPhase = 'betting';
+            if (dom.timer) dom.timer.classList.remove('hidden');
             if (dom.diceScene) dom.diceScene.classList.add('hidden');
             if (dom.bowl) dom.bowl.classList.add('hidden');
-            if (dom.centerCircle) dom.centerCircle.classList.remove('hidden');
-            document.querySelectorAll('.side-panel').forEach(p => p.classList.remove('winner-blink', 'selected', 'confirmed'));
+            document.querySelectorAll('.bet-side').forEach(p => p.classList.remove('winner-blink', 'confirmed', 'selected'));
             resetBets();
         } else if (data.phase === 'result') {
             currentPhase = 'result';
             currentResultDices = data.dices;
             currentResultTotal = data.dices[0] + data.dices[1] + data.dices[2];
-            if (dom.diceScene) dom.diceScene.classList.remove('hidden');
             startRealisticRoll(data.dices);
         }
     }
@@ -113,7 +131,7 @@ socket.on('taixiuWin', ({ username, winAmount }) => {
     }
 });
 
-// Logic Functions
+// UI Display
 function updateDisplay() {
     if (dom.balance) dom.balance.textContent = serverBalance.toLocaleString('vi-VN');
     if (dom.pTai) dom.pTai.textContent = pendingBetTai.toLocaleString('vi-VN');
@@ -123,24 +141,37 @@ function updateDisplay() {
 }
 
 function resetBets() {
-    pendingBetTai = 0; pendingBetXiu = 0; confirmedBetTai = 0; confirmedBetXiu = 0; selectedSide = null;
-    document.querySelectorAll('.bet-side').forEach(s => s.classList.remove('selected', 'confirmed', 'winner-blink'));
+    pendingBetTai = 0; pendingBetXiu = 0; confirmedBetTai = 0; confirmedBetXiu = 0;
     updateDisplay();
 }
 
+// Animation Logic
 function startRealisticRoll(dices) {
     isRollingAnimation = true;
-    if (dom.centerCircle) dom.centerCircle.classList.add('hidden');
+    if (dom.timer) dom.timer.classList.add('hidden');
+    if (dom.diceScene) dom.diceScene.classList.remove('hidden');
+    
     [dom.dice1, dom.dice2, dom.dice3].forEach(d => { if (d) d.style.transition = 'none'; });
+    
     setTimeout(() => {
         if (dom.dice1) { dom.dice1.style.transition = 'transform 1.5s cubic-bezier(0.1, 0.8, 0.2, 1)'; dom.dice1.style.transform = getDiceTransform(dices[0]); }
         if (dom.dice2) { dom.dice2.style.transition = 'transform 1.8s cubic-bezier(0.1, 0.8, 0.2, 1)'; dom.dice2.style.transform = getDiceTransform(dices[1]); }
         if (dom.dice3) { dom.dice3.style.transition = 'transform 2.1s cubic-bezier(0.1, 0.8, 0.2, 1)'; dom.dice3.style.transform = getDiceTransform(dices[2]); }
     }, 50);
+
     setTimeout(() => {
-        if (dom.bowl) { dom.bowl.style.transition = 'none'; dom.bowl.style.transform = 'translate(0, -400px)'; dom.bowl.style.opacity = '1'; dom.bowl.classList.remove('hidden'); }
-        setTimeout(() => { if (dom.bowl) { dom.bowl.style.transition = 'transform 0.3s ease-in'; dom.bowl.style.transform = 'translate(0,0)'; } }, 50);
+        if (dom.bowl) {
+            dom.bowl.style.transition = 'none';
+            dom.bowl.style.transform = 'translate(0, -400px)';
+            dom.bowl.style.opacity = '1';
+            dom.bowl.classList.remove('hidden');
+            setTimeout(() => {
+                dom.bowl.style.transition = 'transform 0.3s ease-in';
+                dom.bowl.style.transform = 'translate(0,0)';
+            }, 50);
+        }
     }, 1100);
+
     setTimeout(() => { isRollingAnimation = false; currentPhase = 'revealing'; }, 2500);
 }
 
@@ -152,13 +183,18 @@ function getDiceTransform(val) {
 function finalizeResult() {
     if (currentPhase === 'resolving') return;
     currentPhase = 'resolving';
-    if (dom.bowl) { dom.bowl.style.transition = 'transform 0.5s ease, opacity 0.5s ease'; dom.bowl.style.transform = 'translate(0, -200px)'; dom.bowl.style.opacity = '0'; }
+    if (dom.bowl) {
+        dom.bowl.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+        dom.bowl.style.transform = 'translate(0, -200px)';
+        dom.bowl.style.opacity = '0';
+    }
     let isTai = currentResultTotal >= 11;
     if (confirmedBetTai > 0) showFloatingResult('tai', confirmedBetTai, isTai);
     if (confirmedBetXiu > 0) showFloatingResult('xiu', confirmedBetXiu, !isTai);
     setTimeout(() => {
         if (dom.bowl) dom.bowl.classList.add('hidden');
-        document.getElementById(isTai ? 'side-tai' : 'side-xiu').classList.add('winner-blink');
+        const el = document.getElementById(isTai ? 'side-tai' : 'side-xiu');
+        if (el) el.classList.add('winner-blink');
     }, 500);
 }
 
@@ -177,12 +213,17 @@ let isDragging = false, startX = 0, startY = 0, currX = 0, currY = 0;
 function onStart(e) { if (currentPhase !== 'revealing') return; isDragging = true; let c = e.touches ? e.touches[0] : e; startX = c.clientX - currX; startY = c.clientY - currY; if (dom.bowl) dom.bowl.style.transition = 'none'; }
 function onMove(e) { if (!isDragging) return; e.preventDefault(); let c = e.touches ? e.touches[0] : e; currX = c.clientX - startX; currY = c.clientY - startY; if (dom.bowl) dom.bowl.style.transform = `translate(${currX}px, ${currY}px)`; }
 function onEnd() { if (!isDragging) return; isDragging = false; if (Math.sqrt(currX*currX + currY*currY) > 100) finalizeResult(); else if (dom.bowl) { dom.bowl.style.transition = 'transform 0.3s ease'; currX = 0; currY = 0; dom.bowl.style.transform = 'translate(0,0)'; } }
+function startFakeChat() {
+    setTimeout(() => {
+        const names = ['tuan','hung','linh','be_cute','anh_pro','dai_gia_88','kiet_xu','huyen_my'];
+        const msgs = ['Xỉu đẹp!','Tài đi anh em!','Húp rồi, ngon quá!','Đen quá, gãy cầu rồi.','Lên Tài đi nào!','Cầu này bệt Xỉu rồi.'];
+        addMsg(names[Math.floor(Math.random()*names.length)], msgs[Math.floor(Math.random()*msgs.length)]);
+        startFakeChat();
+    }, Math.random()*5000+3000);
+}
+startFakeChat();
 
-if (dom.bowl) { dom.bowl.addEventListener('mousedown', onStart); dom.bowl.addEventListener('touchstart', onStart); }
-document.addEventListener('mousemove', onMove); document.addEventListener('mouseup', onEnd);
-document.addEventListener('touchmove', onMove, {passive:false}); document.addEventListener('touchend', onEnd);
-
-// Betting interactions
+// User Interactions
 document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
     document.querySelectorAll('.chip').forEach(x => x.classList.remove('selected'));
     c.classList.add('selected');
@@ -212,14 +253,19 @@ document.getElementById('btn-confirm').addEventListener('click', () => {
     updateDisplay();
 });
 
-document.getElementById('btn-cancel').addEventListener('click', () => { pendingBetTai = 0; pendingBetXiu = 0; updateDisplay(); });
+document.getElementById('btn-cancel').addEventListener('click', () => {
+    pendingBetTai = 0; pendingBetXiu = 0;
+    document.querySelectorAll('.bet-side').forEach(s => s.classList.remove('selected'));
+    updateDisplay();
+});
+
 document.getElementById('btn-allin').addEventListener('click', () => {
     if (currentPhase !== 'betting' || !selectedSide) return;
     let rem = serverBalance - (confirmedBetTai + confirmedBetXiu);
     if (rem > 0) { if (selectedSide === 'tai') pendingBetTai = rem; else pendingBetXiu = rem; updateDisplay(); }
 });
 
-// UI Helpers
+// Notifications
 function showNotification(msg, isErr = false) {
     const el = document.getElementById('notification');
     if (!el) return;
@@ -237,30 +283,6 @@ function createGoldExplosion() {
 }
 
 // Chat
-function toggleChat() {
-    const c = document.getElementById('chat-container');
-    if (c) c.classList.toggle('active');
-}
-document.getElementById('btn-send-chat').addEventListener('click', sendChat);
-document.getElementById('chat-input').addEventListener('keypress', (e) => { if (e.key === 'Enter') sendChat(); });
-function sendChat() {
-    const i = document.getElementById('chat-input');
-    if (!i) return;
-    const m = i.value.trim();
-    if (m) { addMsg(currentUser, m); i.value = ''; }
-}
-
-function startFakeChat() {
-    setTimeout(() => {
-        const names = ['tuan','hung','linh','be_cute','anh_pro','dai_gia_88','kiet_xu','huyen_my'];
-        const msgs = ['Xỉu đẹp!','Tài đi anh em!','Húp rồi, ngon quá!','Đen quá, gãy cầu rồi.','Lên Tài đi nào!','Cầu này bệt Xỉu rồi.'];
-        const n = names[Math.floor(Math.random()*names.length)];
-        const m = msgs[Math.floor(Math.random()*msgs.length)];
-        addMsg(n, m);
-        startFakeChat();
-    }, Math.random()*5000+3000);
-}
-startFakeChat();
 function addMsg(user, msg) {
     const a = document.getElementById('chat-messages');
     if (a) {
@@ -268,48 +290,17 @@ function addMsg(user, msg) {
         a.scrollTop = a.scrollHeight;
     }
 }
-// MODALS
-const modalSoiCau = document.getElementById('modal-soicau');
-const btnSoiCau = document.getElementById('btn-soicau');
-const btnCloseSoiCau = document.getElementById('btn-close-soicau');
-
-if (btnSoiCau) btnSoiCau.addEventListener('click', () => {
-    modalSoiCau.classList.remove('hidden');
-    drawSoiCau();
+document.getElementById('btn-send-chat').addEventListener('click', () => {
+    const i = document.getElementById('chat-input');
+    if (i && i.value.trim()) { addMsg(currentUser, i.value.trim()); i.value = ''; }
 });
-if (btnCloseSoiCau) btnCloseSoiCau.addEventListener('click', () => modalSoiCau.classList.add('hidden'));
 
-function drawSoiCau() {
-    // Logic vẽ soi cầu đơn giản (có thể mở rộng thêm)
-    const canvas = document.getElementById('canvas-tong');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    ctx.clearRect(0, 0, canvas.width, canvas.height);
-    ctx.fillStyle = "rgba(255,255,255,0.1)";
-    ctx.fillRect(0,0, canvas.width, canvas.height);
-    ctx.fillStyle = "#fff";
-    ctx.font = "20px Arial";
-    ctx.fillText("Hệ thống đang cập nhật lịch sử...", 50, 100);
-}
-
+// Modals
 const modalBxh = document.getElementById('modal-bxh');
-const btnBxh = document.getElementById('btn-bxh');
-const btnCloseBxh = document.getElementById('btn-close-bxh');
-
-if (btnBxh) btnBxh.addEventListener('click', () => {
-    modalBxh.classList.remove('hidden');
-    socket.emit('getLeaderboard');
-});
-if (btnCloseBxh) btnCloseBxh.addEventListener('click', () => modalBxh.classList.add('hidden'));
+if (document.getElementById('btn-bxh')) document.getElementById('btn-bxh').addEventListener('click', () => { modalBxh.classList.remove('hidden'); socket.emit('getLeaderboard'); });
+if (document.getElementById('btn-close-bxh')) document.getElementById('btn-close-bxh').addEventListener('click', () => modalBxh.classList.add('hidden'));
 
 socket.on('leaderboardData', (data) => {
     const container = document.getElementById('rank-list-container');
-    if (!container) return;
-    container.innerHTML = data.map((r, i) => `
-        <div class="rank-item">
-            <span class="rank-pos">#${i+1}</span>
-            <span class="rank-name">${r.name}</span>
-            <span class="rank-money">${r.money.toLocaleString()}</span>
-        </div>
-    `).join('');
+    if (container) container.innerHTML = data.map((r, i) => `<div class="rank-item"><span>#${i+1}</span><span>${r.name}</span><span class="rank-money">${r.money.toLocaleString()}</span></div>`).join('');
 });
