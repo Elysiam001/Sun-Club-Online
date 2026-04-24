@@ -291,6 +291,13 @@ socket.on('taixiuTick', (data) => {
         document.getElementById('side-tai').classList.remove('winner-blink');
         document.getElementById('side-xiu').classList.remove('winner-blink');
         
+        // Reset tiền cược ván cũ
+        pendingBetTai = 0;
+        pendingBetXiu = 0;
+        confirmedBetTai = 0;
+        confirmedBetXiu = 0;
+        updateDisplay();
+        
         // Cập nhật số người và Pool (Giữ nguyên icon và bố cục của sếp)
         document.getElementById('tai-total-pool').textContent = data.totalPool.tai.toLocaleString('vi-VN');
         document.getElementById('xiu-total-pool').textContent = data.totalPool.xiu.toLocaleString('vi-VN');
@@ -461,10 +468,13 @@ document.getElementById('btn-confirm').addEventListener('click', () => {
     
     if (pendingBetTai > 0) {
         socket.emit('taixiuBet', { username: currentUser, side: 'tai', amount: pendingBetTai });
+        pendingBetTai = 0; // Xóa ngay sau khi bấm để tránh bấm nhầm lần 2
     }
     if (pendingBetXiu > 0) {
         socket.emit('taixiuBet', { username: currentUser, side: 'xiu', amount: pendingBetXiu });
+        pendingBetXiu = 0; // Xóa ngay sau khi bấm
     }
+    updateDisplay();
 });
 
 // ==========================================
