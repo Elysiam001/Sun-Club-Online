@@ -37,6 +37,31 @@ html, body {
     padding: 20px;
     perspective: 1000px;
     margin: 0 auto;
+    transition: transform 0.3s ease;
+}
+
+/* TỰ ĐỘNG THU NHỎ TRÊN ĐIỆN THOẠI (DƯỚI 600PX CHIỀU CAO HOẶC 900PX CHIỀU RỘNG) */
+@media (max-width: 900px), (max-height: 600px) {
+    .game-wrapper {
+        transform: scale(0.75); /* Thu nhỏ lại 75% */
+        transform-origin: center center;
+    }
+    
+    .game-board-premium {
+        border-radius: 40px; /* Thu nhỏ bo góc cho đỡ chiếm chỗ */
+        padding: 10px;
+    }
+    
+    .side-title {
+        font-size: 50px; /* Thu nhỏ chữ Tài Xỉu một chút */
+    }
+}
+
+/* THU NHỎ THÊM CHO MÀN HÌNH CỰC NHỎ */
+@media (max-width: 600px) {
+    .game-wrapper {
+        transform: scale(0.65);
+    }
 }
 
 /* Khung bàn chơi */
