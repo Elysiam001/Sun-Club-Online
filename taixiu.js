@@ -372,14 +372,23 @@ socket.on('taixiuTick', (data) => {
             currentPhase = 'betting';
             if (dom.diceScene) dom.diceScene.classList.add('hidden');
             if (dom.bowl) dom.bowl.classList.add('hidden');
-            document.querySelectorAll('.side-panel').forEach(p => p.classList.remove('winner-blink', 'selected'));
+            
+            // Hiện lại đồng hồ cho ván mới
+            const centerCircle = document.querySelector('.center-circle');
+            if (centerCircle) centerCircle.classList.remove('hidden');
+
+            document.querySelectorAll('.side-panel').forEach(p => p.classList.remove('winner-blink', 'selected', 'confirmed'));
             resetBets();
             displayStats = { taiUsers: 0, xiuUsers: 0, taiPool: 0, xiuPool: 0 };
         } else if (data.phase === 'result') {
             currentPhase = 'result';
             currentResultDices = data.dices;
             currentResultTotal = data.dices[0] + data.dices[1] + data.dices[2];
-            startRealisticRoll(data.dices); // Gọi đúng hàm để quay xúc xắc và úp bát
+            
+            // QUAN TRỌNG: Phải hiện khung xúc xắc lên trước khi quay
+            if (dom.diceScene) dom.diceScene.classList.remove('hidden');
+            
+            startRealisticRoll(data.dices);
         }
     }
 });
@@ -553,6 +562,10 @@ socket.on('taixiuPoolUpdate', (pool) => {
 function startRealisticRoll(dices) {
     isRollingAnimation = true;
     
+    // Ẩn đồng hồ để sếp tập trung soi xúc xắc
+    const centerCircle = document.querySelector('.center-circle');
+    if (centerCircle) centerCircle.classList.add('hidden');
+
     dice1.style.transition = 'none'; dice2.style.transition = 'none'; dice3.style.transition = 'none';
     dice1.style.transform = 'rotateX(0deg) rotateY(0deg)';
     dice2.style.transform = 'rotateX(0deg) rotateY(0deg)';
