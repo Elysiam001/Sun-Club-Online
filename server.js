@@ -211,13 +211,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    socket.on('disconnect', () => {});
-
-    // --- LOGIC TÀI XỈU TẬP TRUNG (SERVER-SIDE) ---
-    socket.on('taixiuJoin', () => {
-        socket.emit('taixiuState', taixiuState);
-    });
-
     socket.on('taixiuBet', async ({ username, side, amount }) => {
         if (taixiuState.phase !== 'betting') return;
         
@@ -229,10 +222,10 @@ io.on('connection', (socket) => {
             // Lưu cược vào Server
             if (!taixiuState.bets[username]) {
                 taixiuState.bets[username] = { tai: 0, xiu: 0 };
+                taixiuState.totalUsers[side]++; // Chỉ cộng người chơi mới
             }
             taixiuState.bets[username][side] += amount;
             taixiuState.totalPool[side] += amount;
-            taixiuState.totalUsers[side]++;
 
             socket.emit('balanceUpdate', { username, newBalance: user.balance });
             socket.emit('taixiuBetSuccess', { side, amount });
@@ -243,11 +236,18 @@ io.on('connection', (socket) => {
             socket.emit('taixiuError', 'Số dư không đủ!');
         }
     });
+
+    socket.on('disconnect', () => {});
+
+    // --- LOGIC TÀI XỈU TẬP TRUNG (SERVER-SIDE) ---
+    socket.on('taixiuJoin', () => {
+        socket.emit('taixiuState', taixiuState);
+    });
 });
 
 // --- QUẢN LÝ GAME TÀI XỈU (VÒNG LẶP VĨNH CỬU) ---
 const taixiuState = {
-    timer: 60,
+    timer: 25,
     phase: 'betting',
     dices: [1, 2, 3],
     totalPool: { tai: 0, xiu: 0 },
@@ -281,6 +281,8 @@ function taixiuLoop() {
             // Tính toán người thắng ngay khi có kết quả
             const total = taixiuState.dices[0] + taixiuState.dices[1] + taixiuState.dices[2];
             calculateWinners(total >= 11, total <= 10, total);
+            // Trả thưởng luôn cho nóng!
+            executePayouts();
         }
     } else {
         if (taixiuState.timer <= 0) {
@@ -291,8 +293,6 @@ function taixiuLoop() {
             taixiuState.fakeTai = { users: 100 + Math.floor(Math.random() * 200), pool: Math.floor(Math.random() * 50) * 1000000 };
             taixiuState.fakeXiu = { users: 100 + Math.floor(Math.random() * 200), pool: Math.floor(Math.random() * 50) * 1000000 };
             
-            executePayouts();
-
             taixiuState.totalPool = { tai: 0, xiu: 0 };
             taixiuState.totalUsers = { tai: 0, xiu: 0 };
             taixiuState.bets = {};

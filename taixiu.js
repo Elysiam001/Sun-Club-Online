@@ -346,11 +346,12 @@ setInterval(updateSmoothStats, 150);
 socket.on('taixiuTick', (data) => {
     if (timerDisplay) timerDisplay.textContent = data.timer;
     
-    if (data.fakeTai && data.fakeXiu) {
-        targetStats.taiUsers = data.fakeTai.users;
-        targetStats.xiuUsers = data.fakeXiu.users;
-        targetStats.taiPool = data.fakeTai.pool;
-        targetStats.xiuPool = data.fakeXiu.pool;
+    if (data.fakeTai && data.fakeXiu && data.totalPool) {
+        // Tổng hiển thị = Tiền ảo + Tiền thật từ Server
+        targetStats.taiUsers = data.fakeTai.users + data.totalUsers.tai;
+        targetStats.xiuUsers = data.fakeXiu.users + data.totalUsers.xiu;
+        targetStats.taiPool = data.fakeTai.pool + data.totalPool.tai;
+        targetStats.xiuPool = data.fakeXiu.pool + data.totalPool.xiu;
     }
 
     if (data.phase !== lastPhase) {
