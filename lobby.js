@@ -448,11 +448,27 @@ function submitWithdrawMomo() {
 
 // --- Menu Bottom Buttons Logic ---
 
-// Mở Tài Xỉu khi click vào card game
+// Mở Tài Xỉu bằng Iframe để giữ Toàn màn hình
 const gameTaiXiu = document.getElementById('game-taixiu');
-if (gameTaiXiu) {
+const gameOverlay = document.getElementById('game-overlay');
+const gameIframe = document.getElementById('game-iframe');
+const btnCloseOverlay = document.getElementById('btn-close-overlay');
+
+if (gameTaiXiu && gameOverlay && gameIframe) {
     gameTaiXiu.addEventListener('click', () => {
-        window.location.href = 'taixiu.html';
+        gameIframe.src = 'taixiu.html';
+        gameOverlay.classList.remove('hidden');
+        gameOverlay.style.display = 'block';
+    });
+}
+
+if (btnCloseOverlay) {
+    btnCloseOverlay.addEventListener('click', () => {
+        gameOverlay.classList.add('hidden');
+        gameOverlay.style.display = 'none';
+        gameIframe.src = ''; // Xóa src để dừng âm thanh/game khi đóng
+        // Khi quay lại sảnh, cập nhật lại số dư
+        socket.emit('login', { username: currentUser });
     });
 }
 
