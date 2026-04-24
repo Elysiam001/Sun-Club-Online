@@ -149,16 +149,49 @@ function showNotification(msg, isError = false) {
     setTimeout(() => notification.classList.add('hidden'), 3000);
 }
 
-// Quay lại sảnh
-document.querySelector('.home-btn').addEventListener('click', () => {
-    // Nếu đang chạy trong Iframe (Overlay ở sảnh), thì báo cho sảnh đóng khung lại
-    if (window !== window.parent) {
-        window.parent.postMessage('closeGame', '*');
-    } else {
-        window.location.href = 'lobby.html';
-    }
-});
-document.getElementById('btn-close-game').addEventListener('click', () => { window.location.href = 'lobby.html'; });
+// --- TỰ ĐỘNG CÂN CHỈNH MÀN HÌNH (MOBILE) ---
+function autoScaleGame() {
+    const wrapper = document.querySelector('.game-wrapper');
+    if (!wrapper) return;
+    
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+    const designWidth = 1000; // Chiều rộng thiết kế
+    const designHeight = 600; // Chiều cao thiết kế
+    
+    const scaleX = windowWidth / designWidth;
+    const scaleY = windowHeight / designHeight;
+    const scale = Math.min(scaleX, scaleY, 1); // Không bao giờ to hơn 1
+    
+    wrapper.style.transform = `translate(-50%, -50%) scale(${scale})`;
+}
+
+window.addEventListener('resize', autoScaleGame);
+window.addEventListener('load', autoScaleGame);
+autoScaleGame();
+
+// Quay lại sảnh (Sửa lại ID cho đúng với HTML của sếp)
+const btnHome = document.getElementById('btn-back');
+if (btnHome) {
+    btnHome.addEventListener('click', () => {
+        if (window !== window.parent) {
+            window.parent.postMessage('closeGame', '*');
+        } else {
+            window.location.href = 'lobby.html';
+        }
+    });
+}
+
+const btnCloseGame = document.getElementById('btn-close-game');
+if (btnCloseGame) {
+    btnCloseGame.addEventListener('click', () => {
+        if (window !== window.parent) {
+            window.parent.postMessage('closeGame', '*');
+        } else {
+            window.location.href = 'lobby.html';
+        }
+    });
+}
 
 // --- LẮP LẠI LOGIC CHỌN CHÍP VÀ ĐẶT CƯỢC ---
 document.querySelectorAll('.chip').forEach(chip => {
