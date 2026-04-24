@@ -355,6 +355,31 @@ socket.on('taixiuTick', (data) => {
     }
 });
 
+// --- CÁC HÀM HỖ TRỢ VÁN ĐẤU ---
+function resetBets() {
+    pendingBetTai = 0;
+    pendingBetXiu = 0;
+    confirmedBetTai = 0;
+    confirmedBetXiu = 0;
+    selectedSide = null;
+    document.querySelectorAll('.side-panel').forEach(p => p.classList.remove('selected'));
+    updateDisplay();
+}
+
+function startOpeningBowl() {
+    // Tự động úp bát để sếp nặn
+    bowl.style.transition = 'none';
+    bowl.style.transform = 'translate(0px, 0px)';
+    bowl.style.opacity = '1';
+    bowl.classList.remove('hidden');
+    
+    // Hiện xúc xắc ở dưới bát
+    diceScene.classList.remove('hidden');
+    dice1.style.transform = getTransform(currentResultDices[0]);
+    dice2.style.transform = getTransform(currentResultDices[1]);
+    dice3.style.transform = getTransform(currentResultDices[2]);
+}
+
 // --- LOGIC KÊNH CHAT ---
 function toggleChat() {
     const chat = document.getElementById('chat-container');
@@ -420,29 +445,6 @@ function startFakeChat() {
     }, delay);
 }
 startFakeChat();
-            document.getElementById('side-tai').classList.remove('winner-blink');
-            document.getElementById('side-xiu').classList.remove('winner-blink');
-            document.getElementById('side-tai').classList.remove('selected');
-            document.getElementById('side-xiu').classList.remove('selected');
-            
-            pendingBetTai = 0;
-            pendingBetXiu = 0;
-            confirmedBetTai = 0;
-            confirmedBetXiu = 0;
-            updateDisplay();
-        }
-        
-        // Cập nhật số người và Pool (Giữ nguyên icon và bố cục của sếp)
-        document.getElementById('tai-total-pool').textContent = data.totalPool.tai.toLocaleString('vi-VN');
-        document.getElementById('xiu-total-pool').textContent = data.totalPool.xiu.toLocaleString('vi-VN');
-        document.getElementById('users-tai').innerHTML = `<i class="fa-solid fa-users"></i> ${data.totalUsers.tai.toLocaleString('vi-VN')}`;
-        document.getElementById('users-xiu').innerHTML = `<i class="fa-solid fa-users"></i> ${data.totalUsers.xiu.toLocaleString('vi-VN')}`;
-    } else {
-        timerDisplay.classList.add('hidden');
-    }
-    
-    lastPhase = data.phase; // Quan trọng: Cập nhật lại giai đoạn để không bị reset liên tục
-});
 
 socket.on('taixiuResult', (data) => {
     if (currentPhase !== 'betting') return; // Tránh chạy lại nếu đã đang hiện kết quả

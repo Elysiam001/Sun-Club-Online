@@ -31,6 +31,16 @@ html, body {
     box-shadow: 0 0 10px rgba(0,0,0,0.8);
 }
 
+.game-wrapper {
+    width: 100%;
+    max-width: 900px;
+    padding: 20px;
+    perspective: 1000px;
+    margin: 0 auto;
+    transition: transform 0.3s ease;
+    position: relative;
+}
+
 /* TỐI ƯU HÓA CHO ĐIỆN THOẠI XOAY NGANG (MÀN HÌNH THẤP) */
 @media screen and (max-height: 500px) {
     .game-wrapper {
