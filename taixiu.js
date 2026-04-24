@@ -488,40 +488,16 @@ btnCloseBxh.addEventListener('click', () => {
 });
 
 function showLeaderboard() {
+    socket.emit('getLeaderboard');
+}
+
+socket.on('leaderboardData', (data) => {
     let container = document.getElementById('rank-list-container');
-    container.innerHTML = '';
+    if (!container) return;
     
-    let baseNames = ['satthu', 'vuataixiu', 'trum', 'thantai', 'phudai', 'taybac', 'anhnong', 'nguoikx', 'an_dem', 'jack', 'typhu', 'daigia', 'thanhbet', 'top_1', 'no_hu'];
-    let ranks = [];
+    container.innerHTML = ''; // Xóa danh sách cũ
     
-    // Sinh 150 người chơi ảo để chọn lấy Top 100
-    for(let i=0; i<150; i++) {
-        let randomBase = baseNames[Math.floor(Math.random() * baseNames.length)];
-        let randomSuffix = Math.floor(Math.random() * 10000);
-        let randomMoney = Math.floor(Math.pow(Math.random(), 2) * 5000000000) + 5000000; // Phân phối tiền (5M - 5 tỷ)
-        
-        ranks.push({
-            name: randomBase + randomSuffix,
-            money: randomMoney
-        });
-    }
-    
-    // Chỉ thêm tài khoản của sếp vào BXH nếu có tiền
-    const userBalance = getBalance();
-    if (userBalance > 0) {
-        ranks.push({
-            name: currentUser,
-            money: userBalance
-        });
-    }
-    
-    // Sắp xếp từ cao xuống thấp
-    ranks.sort((a,b) => b.money - a.money);
-    
-    // Lấy Top 100
-    let top100 = ranks.slice(0, 100);
-    
-    top100.forEach((r, idx) => {
+    data.forEach((r, idx) => {
         let div = document.createElement('div');
         div.className = `rank-item rank-${idx+1}`;
         
@@ -530,22 +506,14 @@ function showLeaderboard() {
         if(idx === 1) icon = '<i class="fa-solid fa-medal" style="color:#c0c0c0"></i>';
         if(idx === 2) icon = '<i class="fa-solid fa-award" style="color:#cd7f32"></i>';
         
+        let isMe = r.name.includes('***') === false && r.name === currentUser; // Logic kiểm tra (tạm thời)
         let displayName = r.name;
-        if(r.name === currentUser) {
-            displayName = `<span style="color:#ffd700; font-weight:bold;">(Bạn) ${r.name}</span>`;
-        } else {
-            if (r.name.length > 5) {
-                displayName = r.name.substring(0,3) + '***' + r.name.substring(r.name.length-2);
-            } else {
-                displayName = r.name.substring(0,1) + '***' + r.name.substring(r.name.length-1);
-            }
-        }
         
         div.innerHTML = `
             <div class="rank-pos">${icon}</div>
-            <div class="rank-name">${displayName}</div>
+            <div class="rank-name ${isMe ? 'gold-text font-bold' : ''}">${displayName}</div>
             <div class="rank-money">${r.money.toLocaleString('vi-VN')}</div>
         `;
         container.appendChild(div);
     });
-}
+});

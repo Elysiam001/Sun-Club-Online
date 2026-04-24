@@ -191,6 +191,26 @@ io.on('connection', (socket) => {
         }
     });
 
+    // --- BẢNG XẾP HẠNG THẬT TỪ DATABASE ---
+    socket.on('getLeaderboard', async () => {
+        try {
+            const topUsers = await User.find()
+                .sort({ balance: -1 })
+                .limit(50)
+                .select('username balance');
+            
+            const leaderboard = topUsers.map(u => ({
+                name: u.username === 'admin' ? 'Nhà Cái' : (u.username.length > 3 ? u.username.substring(0, 3) + '***' + u.username.substring(u.username.length - 2) : u.username),
+                money: u.balance,
+                isMe: false // Sẽ xử lý ở client
+            }));
+            
+            socket.emit('leaderboardData', leaderboard);
+        } catch (err) {
+            console.error('Lỗi lấy BXH:', err);
+        }
+    });
+
     socket.on('disconnect', () => {});
 
     // --- LOGIC TÀI XỈU TẬP TRUNG (SERVER-SIDE) ---
