@@ -314,42 +314,58 @@ function checkTransactionNotifications() {
 setInterval(checkTransactionNotifications, 5000); // Check mỗi 5 giây
 
 // --- SOCKET.IO GAME SYNC ---
+// --- SOCKET.IO GAME SYNC ---
 socket.emit('taixiuJoin');
 
 let lastPhase = ''; 
+let displayStats = { taiUsers: 0, xiuUsers: 0, taiPool: 0, xiuPool: 0 };
+let targetStats = { taiUsers: 0, xiuUsers: 0, taiPool: 0, xiuPool: 0 };
+
+// Hàm nhảy số mượt mà (Tối ưu để không gây lag)
+function updateSmoothStats() {
+    if (currentPhase !== 'betting') return;
+    
+    // Tốc độ nhảy số
+    displayStats.taiUsers = Math.ceil(displayStats.taiUsers + (targetStats.taiUsers - displayStats.taiUsers) * 0.1);
+    displayStats.xiuUsers = Math.ceil(displayStats.xiuUsers + (targetStats.xiuUsers - displayStats.xiuUsers) * 0.1);
+    displayStats.taiPool = Math.ceil(displayStats.taiPool + (targetStats.taiPool - displayStats.taiPool) * 0.1);
+    displayStats.xiuPool = Math.ceil(displayStats.xiuPool + (targetStats.xiuPool - displayStats.xiuPool) * 0.1);
+
+    const uT = document.getElementById('users-tai');
+    const uX = document.getElementById('users-xiu');
+    const pT = document.getElementById('tai-total-pool');
+    const pX = document.getElementById('xiu-total-pool');
+
+    if (uT) uT.innerHTML = `<i class="fa-solid fa-users"></i> ${displayStats.taiUsers.toLocaleString()}`;
+    if (uX) uX.innerHTML = `<i class="fa-solid fa-users"></i> ${displayStats.xiuUsers.toLocaleString()}`;
+    if (pT) pT.textContent = displayStats.taiPool.toLocaleString();
+    if (pX) pX.textContent = displayStats.xiuPool.toLocaleString();
+}
+setInterval(updateSmoothStats, 150);
 
 socket.on('taixiuTick', (data) => {
-    // 1. Cập nhật Timer
-    const timerDisplay = document.getElementById('countdown-timer');
     if (timerDisplay) timerDisplay.textContent = data.timer;
     
-    // 2. Cập nhật số liệu ảo (Chỉ cập nhật khi đang trong giai đoạn cược)
-    if (data.phase === 'betting') {
-        const usersTaiEl = document.getElementById('users-tai');
-        const usersXiuEl = document.getElementById('users-xiu');
-        const poolTaiEl = document.getElementById('tai-total-pool');
-        const poolXiuEl = document.getElementById('xiu-total-pool');
-
-        if (usersTaiEl && data.fakeTai) usersTaiEl.innerHTML = `<i class="fa-solid fa-users"></i> ${data.fakeTai.users.toLocaleString()}`;
-        if (usersXiuEl && data.fakeXiu) usersXiuEl.innerHTML = `<i class="fa-solid fa-users"></i> ${data.fakeXiu.users.toLocaleString()}`;
-        if (poolTaiEl && data.fakeTai) poolTaiEl.textContent = data.fakeTai.pool.toLocaleString();
-        if (poolXiuEl && data.fakeXiu) poolXiuEl.textContent = data.fakeXiu.pool.toLocaleString();
+    if (data.fakeTai && data.fakeXiu) {
+        targetStats.taiUsers = data.fakeTai.users;
+        targetStats.xiuUsers = data.fakeXiu.users;
+        targetStats.taiPool = data.fakeTai.pool;
+        targetStats.xiuPool = data.fakeXiu.pool;
     }
 
-    // 3. Đồng bộ giai đoạn game
     if (data.phase !== lastPhase) {
         lastPhase = data.phase;
         if (data.phase === 'betting') {
             currentPhase = 'betting';
             diceScene.classList.add('hidden');
             bowl.classList.add('hidden');
-            document.getElementById('side-tai').classList.remove('winner-blink');
-            document.getElementById('side-xiu').classList.remove('winner-blink');
+            document.querySelectorAll('.side-panel').forEach(p => p.classList.remove('winner-blink', 'selected'));
             resetBets();
+            displayStats = { taiUsers: 0, xiuUsers: 0, taiPool: 0, xiuPool: 0 };
         } else if (data.phase === 'result') {
             currentPhase = 'result';
             currentResultDices = data.dices;
-            currentResultTotal = data.dices[0] + data.dices[1] + data.dices[2]; // Phải tính tổng ở đây
+            currentResultTotal = data.dices[0] + data.dices[1] + data.dices[2];
             startOpeningBowl();
         }
     }

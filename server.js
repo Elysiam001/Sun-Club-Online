@@ -264,11 +264,11 @@ function taixiuLoop() {
     taixiuState.timer--;
 
     if (taixiuState.phase === 'betting') {
-        // Nhảy số ảo cho sinh động
-        taixiuState.fakeTai.users += Math.floor(Math.random() * 5);
-        taixiuState.fakeXiu.users += Math.floor(Math.random() * 5);
-        taixiuState.fakeTai.pool += Math.floor(Math.random() * 10) * 1000000;
-        taixiuState.fakeXiu.pool += Math.floor(Math.random() * 10) * 1000000;
+        // Nhảy số ảo cho sinh động (Tăng dần mỗi giây)
+        taixiuState.fakeTai.users += Math.floor(Math.random() * 3) + 1;
+        taixiuState.fakeXiu.users += Math.floor(Math.random() * 3) + 1;
+        taixiuState.fakeTai.pool += (Math.floor(Math.random() * 5) + 1) * 500000;
+        taixiuState.fakeXiu.pool += (Math.floor(Math.random() * 5) + 1) * 500000;
 
         if (taixiuState.timer <= 0) {
             taixiuState.phase = 'result';
@@ -278,20 +278,21 @@ function taixiuLoop() {
                 Math.floor(Math.random() * 6) + 1,
                 Math.floor(Math.random() * 6) + 1
             ];
+            // Tính toán người thắng ngay khi có kết quả
+            const total = taixiuState.dices[0] + taixiuState.dices[1] + taixiuState.dices[2];
+            calculateWinners(total >= 11, total <= 10, total);
         }
     } else {
         if (taixiuState.timer <= 0) {
             taixiuState.phase = 'betting';
-            taixiuState.timer = 60;
-            // Reset số liệu ảo ván mới
-            taixiuState.fakeTai = { users: 1000 + Math.floor(Math.random() * 500), pool: Math.floor(Math.random() * 300) * 1000000 };
-            taixiuState.fakeXiu = { users: 1000 + Math.floor(Math.random() * 500), pool: Math.floor(Math.random() * 300) * 1000000 };
-            // --- BẮT ĐẦU VÁN MỚI: CỘNG TIỀN THẮNG TẠI ĐÂY ---
+            taixiuState.timer = 25; // Thời gian cược 25 giây
+            
+            // Reset số liệu ảo ván mới (Bắt đầu từ con số nhỏ)
+            taixiuState.fakeTai = { users: 100 + Math.floor(Math.random() * 200), pool: Math.floor(Math.random() * 50) * 1000000 };
+            taixiuState.fakeXiu = { users: 100 + Math.floor(Math.random() * 200), pool: Math.floor(Math.random() * 50) * 1000000 };
+            
             executePayouts();
 
-            // Reset ván mới
-            taixiuState.phase = 'betting';
-            taixiuState.timer = 25;
             taixiuState.totalPool = { tai: 0, xiu: 0 };
             taixiuState.totalUsers = { tai: 0, xiu: 0 };
             taixiuState.bets = {};
@@ -299,12 +300,15 @@ function taixiuLoop() {
         }
     }
 
-    // Gửi giây đếm ngược cho tất cả máy khách
+    // Gửi dữ liệu đầy đủ cho Client
     io.emit('taixiuTick', {
         timer: taixiuState.timer,
         phase: taixiuState.phase,
         totalPool: taixiuState.totalPool,
-        totalUsers: taixiuState.totalUsers
+        totalUsers: taixiuState.totalUsers,
+        fakeTai: taixiuState.fakeTai,
+        fakeXiu: taixiuState.fakeXiu,
+        dices: taixiuState.dices
     });
 }
 
