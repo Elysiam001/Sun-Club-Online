@@ -88,14 +88,8 @@ let fakeTotalXiu = initialStats.pX;
 let usersTai = initialStats.uT;
 let usersXiu = initialStats.uX;
 
-// DOM Elements
-const timerDisplay = document.getElementById('countdown-timer');
-const diceScene = document.getElementById('dice-scene');
-const dice1 = document.getElementById('dice-1');
-const dice2 = document.getElementById('dice-2');
-const dice3 = document.getElementById('dice-3');
+// DOM Elements (Dùng dom cache bên dưới)
 const notification = document.getElementById('notification');
-const bowl = document.getElementById('bowl-cover');
 
 // Roll Result State
 let currentResultTotal = 0;
@@ -134,14 +128,16 @@ function getRoundResult(roundId) {
     return results[roundId];
 }
 
-// DOM Elements Cache (Tăng tốc độ bấm nút)
+// DOM Elements Cache (Siêu tốc & Chính xác)
 const dom = {
     balance: null,
     pTai: null, pXiu: null, mTai: null, mXiu: null,
     uT: null, uX: null, poolT: null, poolX: null,
-    timer: document.getElementById('countdown-timer'),
-    diceScene: document.getElementById('dice-scene'),
-    bowl: document.getElementById('bowl-cover')
+    timer: null,
+    diceScene: null,
+    bowl: null,
+    dice1: null, dice2: null, dice3: null,
+    centerCircle: null
 };
 
 function initDOMCache() {
@@ -154,19 +150,24 @@ function initDOMCache() {
     dom.uX = document.getElementById('users-xiu');
     dom.poolT = document.getElementById('tai-total-pool');
     dom.poolX = document.getElementById('xiu-total-pool');
+    dom.timer = document.getElementById('countdown-timer');
+    dom.diceScene = document.getElementById('dice-scene');
+    dom.bowl = document.getElementById('bowl-cover');
+    dom.dice1 = document.getElementById('dice-1');
+    dom.dice2 = document.getElementById('dice-2');
+    dom.dice3 = document.getElementById('dice-3');
+    dom.centerCircle = document.querySelector('.center-circle');
 }
 
-// Cập nhật số dư an toàn và siêu tốc
+// Khởi tạo ngay lập tức
+document.addEventListener('DOMContentLoaded', initDOMCache);
+initDOMCache();
+
+// Cập nhật hiển thị (Sử dụng dom cache đã khởi tạo)
 function updateDisplay() {
-    if (!dom.balance) initDOMCache();
-    
     if (dom.balance) dom.balance.textContent = getBalance().toLocaleString('vi-VN');
-    
-    // pending-bet là số tiền sếp ĐANG CHỌN (hiện ở dòng chữ CƯỢC)
     if (dom.pTai) dom.pTai.textContent = pendingBetTai.toLocaleString('vi-VN');
     if (dom.pXiu) dom.pXiu.textContent = pendingBetXiu.toLocaleString('vi-VN');
-    
-    // my-bet là số tiền sếp ĐÃ CƯỢC THÀNH CÔNG (hiện ở ô đỏ bên dưới)
     if (dom.mTai) dom.mTai.textContent = confirmedBetTai.toLocaleString('vi-VN');
     if (dom.mXiu) dom.mXiu.textContent = confirmedBetXiu.toLocaleString('vi-VN');
 }
@@ -563,34 +564,40 @@ function startRealisticRoll(dices) {
     isRollingAnimation = true;
     
     // Ẩn đồng hồ để sếp tập trung soi xúc xắc
-    const centerCircle = document.querySelector('.center-circle');
-    if (centerCircle) centerCircle.classList.add('hidden');
+    if (dom.centerCircle) dom.centerCircle.classList.add('hidden');
 
-    dice1.style.transition = 'none'; dice2.style.transition = 'none'; dice3.style.transition = 'none';
-    dice1.style.transform = 'rotateX(0deg) rotateY(0deg)';
-    dice2.style.transform = 'rotateX(0deg) rotateY(0deg)';
-    dice3.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    if (dom.dice1) dom.dice1.style.transition = 'none'; 
+    if (dom.dice2) dom.dice2.style.transition = 'none'; 
+    if (dom.dice3) dom.dice3.style.transition = 'none';
+    
+    if (dom.dice1) dom.dice1.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    if (dom.dice2) dom.dice2.style.transform = 'rotateX(0deg) rotateY(0deg)';
+    if (dom.dice3) dom.dice3.style.transform = 'rotateX(0deg) rotateY(0deg)';
 
     setTimeout(() => {
-        dice1.style.transition = 'transform 1.5s cubic-bezier(0.1, 0.8, 0.2, 1)';
-        dice2.style.transition = 'transform 1.8s cubic-bezier(0.1, 0.8, 0.2, 1)';
-        dice3.style.transition = 'transform 2.1s cubic-bezier(0.1, 0.8, 0.2, 1)';
+        if (dom.dice1) dom.dice1.style.transition = 'transform 1.5s cubic-bezier(0.1, 0.8, 0.2, 1)';
+        if (dom.dice2) dom.dice2.style.transition = 'transform 1.8s cubic-bezier(0.1, 0.8, 0.2, 1)';
+        if (dom.dice3) dom.dice3.style.transition = 'transform 2.1s cubic-bezier(0.1, 0.8, 0.2, 1)';
         
-        dice1.style.transform = getTransform(dices[0]);
-        dice2.style.transform = getTransform(dices[1]);
-        dice3.style.transform = getTransform(dices[2]);
+        if (dom.dice1) dom.dice1.style.transform = getTransform(dices[0]);
+        if (dom.dice2) dom.dice2.style.transform = getTransform(dices[1]);
+        if (dom.dice3) dom.dice3.style.transform = getTransform(dices[2]);
     }, 50);
     
     // Bát úp xuống
     setTimeout(() => {
-        bowl.style.transition = 'none';
-        bowl.style.transform = 'translate(0px, -400px)';
-        bowl.style.opacity = '1';
-        bowl.classList.remove('hidden');
+        if (dom.bowl) {
+            dom.bowl.style.transition = 'none';
+            dom.bowl.style.transform = 'translate(0px, -400px)';
+            dom.bowl.style.opacity = '1';
+            dom.bowl.classList.remove('hidden');
+        }
         
         setTimeout(() => {
-            bowl.style.transition = 'transform 0.2s cubic-bezier(0.5, 0, 1, 1)';
-            bowl.style.transform = 'translate(0px, 0px)';
+            if (dom.bowl) {
+                dom.bowl.style.transition = 'transform 0.2s cubic-bezier(0.5, 0, 1, 1)';
+                dom.bowl.style.transform = 'translate(0px, 0px)';
+            }
         }, 50);
     }, 1100);
 
@@ -605,9 +612,11 @@ function finalizeResult() {
     if (currentPhase === 'resolving') return;
     currentPhase = 'resolving';
     
-    bowl.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-    bowl.style.transform = `translate(0px, -200px)`;
-    bowl.style.opacity = '0';
+    if (dom.bowl) {
+        dom.bowl.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+        dom.bowl.style.transform = `translate(0px, -200px)`;
+        dom.bowl.style.opacity = '0';
+    }
     
     let isTai = currentResultTotal >= 11;
     let isXiu = currentResultTotal <= 10;
