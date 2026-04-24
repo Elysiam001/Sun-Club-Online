@@ -424,26 +424,42 @@ function sendMyChat() {
     }
 }
 
-// --- HỆ THỐNG CHIM MỒI (FAKE CHAT) ---
-const fakeChats = [
-    { n: 'Trùm Tài Xỉu', m: 'Tay này Xỉu đẹp anh em ơi!' },
-    { n: 'BeHeo9x', m: 'Tài đi, nãy giờ bệt Xỉu rồi.' },
-    { n: 'Thần Bài', m: 'Húp mạnh thôi!' },
-    { n: 'Đại Gia Phố Núi', m: 'Vừa tất tay Tài 100M, run quá.' },
-    { n: 'Kiếm Thế', m: 'Cầu này khó đoán quá.' },
-    { n: 'Công Tử Bạc Liêu', m: 'Mới húp 50M, rủ anh em đi nhậu.' },
-    { n: 'Gà Con', m: 'Cho em xin lộc với ạ!' },
-    { n: 'Sói Độc Hành', m: 'Xỉu chắc rồi, đừng cãi.' }
+// --- HỆ THỐNG CHIM MỒI (FAKE CHAT) SIÊU CẤP ---
+const fakeNames = [
+    'Trùm Tài Xỉu', 'BeHeo9x', 'Thần Bài', 'Đại Gia Phố Núi', 'Kiếm Thế', 'Công Tử Bạc Liêu', 'Gà Con', 'Sói Độc Hành',
+    'Lô Đề Học', 'Bắc Kim Thang', 'Hắc Bạch Công Tử', 'Kiều Nữ', 'Sát Thủ Vô Tình', 'Tài Xỉu 88', 'Về Bờ Uy Tín', 'Kéo 1-1',
+    'Thánh Soi Cầu', 'Nhà Cái Đến Từ Châu Âu', 'Tiền Là Giấy', 'Nợ Như Chúa Chổm', 'Tay Trắng Làm Nên', 'Đại Ca Chợ Lớn'
 ];
 
+const fakeMessages = [
+    'Tay này Xỉu đẹp anh em ơi!', 'Tài đi, nãy giờ bệt Xỉu rồi.', 'Húp mạnh thôi!', 'Vừa tất tay Tài 100M, run quá.',
+    'Cầu này khó đoán quá.', 'Mới húp 50M, rủ anh em đi nhậu.', 'Cho em xin lộc với ạ!', 'Xỉu chắc rồi, đừng cãi.',
+    'ĐM lại ra Tài, ảo thật đấy!', 'Nhận kéo 1-1 về bờ, ai quan tâm inbox.', 'Cầu bệt Xỉu rồi, đừng bẻ anh em ơi.',
+    'Sếp ơi cho em xin ít lộc!', 'Thằng kia biết cái gì mà nói, Tài chắc luôn.', 'Hết tiền rồi, ai cho vay ít không?',
+    'Cầu này soi chuẩn 99%, Xỉu đi.', 'Nổ hũ đi nào!', 'Lại gãy rồi, đen quá.', 'Admin ơi xem lại cầu này cái.',
+    'Húp Xỉu 20M ngon lành!', 'Anh em theo tôi, ván này về Tài.', 'Đừng nghe nó, nó kéo lừa đấy.', 'Xin lộc sếp ơi!'
+];
+
+function initFakeChatHistory() {
+    for (let i = 0; i < 20; i++) {
+        const name = fakeNames[Math.floor(Math.random() * fakeNames.length)];
+        const msg = fakeMessages[Math.floor(Math.random() * fakeMessages.length)];
+        addChatMessage(name, msg);
+    }
+}
+
 function startFakeChat() {
-    const delay = Math.floor(Math.random() * 5000) + 3000; // 3-8 giây có 1 tin nhắn
+    const delay = Math.floor(Math.random() * 2000) + 1000; // 1-3 giây có 1 tin nhắn (Cực nhanh)
     setTimeout(() => {
-        const chat = fakeChats[Math.floor(Math.random() * fakeChats.length)];
-        addChatMessage(chat.n, chat.m);
+        const name = fakeNames[Math.floor(Math.random() * fakeNames.length)];
+        const msg = fakeMessages[Math.floor(Math.random() * fakeMessages.length)];
+        addChatMessage(name, msg);
         startFakeChat();
     }, delay);
 }
+
+// Chạy khởi tạo và bắt đầu vòng lặp
+initFakeChatHistory();
 startFakeChat();
 
 socket.on('taixiuResult', (data) => {
