@@ -161,8 +161,12 @@ function updateDisplay() {
     if (!dom.balance) initDOMCache();
     
     if (dom.balance) dom.balance.textContent = getBalance().toLocaleString('vi-VN');
+    
+    // pending-bet là số tiền sếp ĐANG CHỌN (hiện ở dòng chữ CƯỢC)
     if (dom.pTai) dom.pTai.textContent = pendingBetTai.toLocaleString('vi-VN');
     if (dom.pXiu) dom.pXiu.textContent = pendingBetXiu.toLocaleString('vi-VN');
+    
+    // my-bet là số tiền sếp ĐÃ CƯỢC THÀNH CÔNG (hiện ở ô đỏ bên dưới)
     if (dom.mTai) dom.mTai.textContent = confirmedBetTai.toLocaleString('vi-VN');
     if (dom.mXiu) dom.mXiu.textContent = confirmedBetXiu.toLocaleString('vi-VN');
 }
@@ -511,8 +515,13 @@ socket.on('taixiuReset', () => {
 });
 
 socket.on('taixiuBetSuccess', ({ side, amount }) => {
-    if (side === 'tai') confirmedBetTai += amount;
-    else confirmedBetXiu += amount;
+    if (side === 'tai') {
+        confirmedBetTai += amount;
+        document.getElementById('side-tai').classList.add('confirmed');
+    } else {
+        confirmedBetXiu += amount;
+        document.getElementById('side-xiu').classList.add('confirmed');
+    }
     
     pendingBetTai = 0;
     pendingBetXiu = 0;

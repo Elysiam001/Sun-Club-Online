@@ -178,6 +178,12 @@ html, body {
     box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
 }
 
+.bet-side.confirmed {
+    border-color: #00ff00;
+    box-shadow: 0 0 15px rgba(0, 255, 0, 0.5);
+    background: rgba(0, 255, 0, 0.05);
+}
+
 .users-count {
     color: #fff;
     font-size: 14px;
