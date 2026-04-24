@@ -253,7 +253,8 @@ let taixiuState = {
     totalPool: { tai: 0, xiu: 0 },
     totalUsers: { tai: 0, xiu: 0 },
     bets: {}, // { username: { tai: 0, xiu: 0 } }
-    history: []
+    history: [],
+    pendingPayouts: [] // Lưu người thắng để cộng tiền vào ván sau
 };
 
 function taixiuLoop() {
@@ -263,7 +264,7 @@ function taixiuLoop() {
         if (taixiuState.phase === 'betting') {
             // Chuyển sang giai đoạn kết quả
             taixiuState.phase = 'result';
-            taixiuState.timer = 10; // Đã giảm từ 15 xuống 10 giây cho nhanh
+            taixiuState.timer = 10; 
 
             // Quay xúc xắc
             taixiuState.dices = [
@@ -276,21 +277,23 @@ function taixiuLoop() {
             const isTai = total >= 11;
             const isXiu = total <= 10;
 
-            // Tính toán trả thưởng
-            processWinners(isTai, isXiu, total);
+            // Tính toán người thắng (nhưng chưa cộng tiền ngay)
+            calculateWinners(isTai, isXiu, total);
 
-            // Gửi kết quả cho tất cả mọi người
+            // Gửi kết quả
             io.emit('taixiuResult', {
                 dices: taixiuState.dices,
                 total: total,
                 isTai: isTai
             });
 
-            // Lưu lịch sử
             taixiuState.history.push({ total, isTai });
             if (taixiuState.history.length > 20) taixiuState.history.shift();
 
         } else {
+            // --- BẮT ĐẦU VÁN MỚI: CỘNG TIỀN THẮNG TẠI ĐÂY ---
+            executePayouts();
+
             // Reset ván mới
             taixiuState.phase = 'betting';
             taixiuState.timer = 25;
@@ -300,6 +303,41 @@ function taixiuLoop() {
             io.emit('taixiuReset', taixiuState);
         }
     }
+    // ... gửi Tick như cũ
+}
+
+function calculateWinners(isTai, isXiu, total) {
+    const winningSide = isTai ? 'tai' : (isXiu ? 'xiu' : null);
+    taixiuState.pendingPayouts = [];
+    
+    for (let username in taixiuState.bets) {
+        const userBets = taixiuState.bets[username];
+        let winAmount = 0;
+        if (winningSide && userBets[winningSide] > 0) {
+            winAmount = userBets[winningSide] * 2;
+        }
+        if (winAmount > 0) {
+            taixiuState.pendingPayouts.push({ username, winAmount });
+        }
+    }
+}
+
+async function executePayouts() {
+    for (let payout of taixiuState.pendingPayouts) {
+        try {
+            const user = await User.findOne({ username: payout.username });
+            if (user) {
+                user.balance += payout.winAmount;
+                await user.save();
+                io.emit('balanceUpdate', { username: user.username, newBalance: user.balance });
+                io.emit('taixiuWin', { username: user.username, winAmount: payout.winAmount });
+            }
+        } catch (err) {
+            console.error('Lỗi trả thưởng trì hoãn:', err);
+        }
+    }
+    taixiuState.pendingPayouts = []; // Xóa danh sách sau khi đã trả xong
+}
 
     // Gửi giây đếm ngược cho tất cả máy khách
     io.emit('taixiuTick', {

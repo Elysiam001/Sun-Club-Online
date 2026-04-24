@@ -164,7 +164,15 @@ document.querySelectorAll('.chip').forEach(chip => {
 
 document.getElementById('side-tai').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
-    selectedSide = 'tai'; // Đánh dấu là đang chọn Tài
+    
+    // Kiểm tra số dư: Tổng cược (Dự kiến + Đã xác nhận) không được quá số dư
+    let totalBetting = pendingBetTai + pendingBetXiu + confirmedBetTai + confirmedBetXiu;
+    if (totalBetting + selectedChipVal > getBalance()) {
+        showNotification("SỐ DƯ KHÔNG ĐỦ!", true);
+        return;
+    }
+
+    selectedSide = 'tai'; 
     if (selectedChipVal > 0) {
         pendingBetTai += selectedChipVal;
         updateDisplay();
@@ -173,7 +181,15 @@ document.getElementById('side-tai').addEventListener('click', () => {
 
 document.getElementById('side-xiu').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
-    selectedSide = 'xiu'; // Đánh dấu là đang chọn Xỉu
+
+    // Kiểm tra số dư
+    let totalBetting = pendingBetTai + pendingBetXiu + confirmedBetTai + confirmedBetXiu;
+    if (totalBetting + selectedChipVal > getBalance()) {
+        showNotification("SỐ DƯ KHÔNG ĐỦ!", true);
+        return;
+    }
+
+    selectedSide = 'xiu'; 
     if (selectedChipVal > 0) {
         pendingBetXiu += selectedChipVal;
         updateDisplay();
@@ -183,16 +199,18 @@ document.getElementById('side-xiu').addEventListener('click', () => {
 document.getElementById('btn-allin').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
     let balance = getBalance();
-    if (balance <= 0) return;
     
-    // Nếu chưa chọn bên, mặc định là Tài
+    // ALL-IN là lấy hết số tiền còn lại sau khi đã trừ đi số tiền đã cược trước đó
+    let remaining = balance - (confirmedBetTai + confirmedBetXiu);
+    if (remaining <= 0) return;
+    
     if (!selectedSide) selectedSide = 'tai';
     
     if (selectedSide === 'tai') {
-        pendingBetTai = balance;
+        pendingBetTai = remaining;
         pendingBetXiu = 0;
     } else {
-        pendingBetXiu = balance;
+        pendingBetXiu = remaining;
         pendingBetTai = 0;
     }
     updateDisplay();
