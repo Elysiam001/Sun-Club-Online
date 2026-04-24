@@ -212,16 +212,17 @@
         </div>
     </div>
 
-    <!-- KÊNH CHAT TÀI XỈU -->
-    <div id="chat-container" class="chat-container minimized">
-        <div class="chat-header" onclick="toggleChat()">
-            <i class="fa-solid fa-comments"></i> KÊNH CHAT
-            <button class="chat-toggle-btn"><i class="fa-solid fa-chevron-up"></i></button>
+    <!-- KÊNH CHAT TÀI XỈU (DẠNG ICON) -->
+    <div id="chat-container" class="chat-container" onclick="if(!this.classList.contains('active')) toggleChat()">
+        <div class="chat-header">
+            <span class="chat-title-text"><i class="fa-solid fa-comments"></i> KÊNH CHAT</span>
+            <i class="fa-solid fa-comment-dots chat-icon-only"></i>
+            <button class="chat-toggle-btn" onclick="event.stopPropagation(); toggleChat()"><i class="fa-solid fa-xmark"></i></button>
         </div>
         <div class="chat-messages" id="chat-messages">
             <div class="chat-item system">Chào mừng sếp đến với kênh chat!</div>
         </div>
-        <div class="chat-input-area">
+        <div class="chat-input-area" onclick="event.stopPropagation()">
             <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." maxlength="50">
             <button id="btn-send-chat"><i class="fa-solid fa-paper-plane"></i></button>
         </div>

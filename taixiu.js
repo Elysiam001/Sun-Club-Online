@@ -316,14 +316,14 @@ setInterval(checkTransactionNotifications, 5000); // Check mỗi 5 giây
 // --- SOCKET.IO GAME SYNC ---
 socket.emit('taixiuJoin');
 
-let lastPhase = ''; // Thêm biến để theo dõi sự thay đổi giai đoạn
+let lastPhase = ''; 
 
 socket.on('taixiuTick', (data) => {
     // Cập nhật Timer
     const timerEl = document.getElementById('countdown-timer');
     if (timerEl) timerEl.textContent = data.timer;
     
-    // Cập nhật số liệu ảo từ Server gửi về
+    // Cập nhật số liệu ảo
     const usersTaiEl = document.getElementById('users-tai');
     const usersXiuEl = document.getElementById('users-xiu');
     const poolTaiEl = document.getElementById('tai-total-pool');
@@ -338,9 +338,19 @@ socket.on('taixiuTick', (data) => {
     if (data.phase !== lastPhase) {
         lastPhase = data.phase;
         if (data.phase === 'betting') {
-            startNewRound(data);
-        } else {
-            openBowl(data);
+            // Bắt đầu ván mới: Reset UI, ẩn xúc xắc
+            currentPhase = 'betting';
+            diceScene.classList.add('hidden');
+            bowl.classList.add('hidden');
+            document.getElementById('side-tai').classList.remove('winner-blink');
+            document.getElementById('side-xiu').classList.remove('winner-blink');
+            resetBets();
+        } else if (data.phase === 'result') {
+            // Mở bát: Hiện xúc xắc, nặn bát
+            currentPhase = 'result';
+            currentResultDices = data.dices;
+            currentResultTotal = data.dices[0] + data.dices[1] + data.dices[2];
+            startOpeningBowl();
         }
     }
 });
@@ -348,13 +358,10 @@ socket.on('taixiuTick', (data) => {
 // --- LOGIC KÊNH CHAT ---
 function toggleChat() {
     const chat = document.getElementById('chat-container');
-    chat.classList.toggle('minimized');
-    const btn = chat.querySelector('.chat-toggle-btn i');
-    if (chat.classList.contains('minimized')) {
-        btn.className = 'fa-solid fa-chevron-up';
-    } else {
-        btn.className = 'fa-solid fa-chevron-down';
-        // Cuộn xuống cuối khi mở
+    chat.classList.toggle('active');
+    
+    // Nếu đang mở thì cuộn xuống cuối
+    if (chat.classList.contains('active')) {
         const msgArea = document.getElementById('chat-messages');
         msgArea.scrollTop = msgArea.scrollHeight;
     }
