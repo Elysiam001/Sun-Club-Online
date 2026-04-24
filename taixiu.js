@@ -279,24 +279,27 @@ setInterval(checkTransactionNotifications, 5000); // Check mỗi 5 giây
 // --- SOCKET.IO GAME SYNC ---
 socket.emit('taixiuJoin');
 
+let lastPhase = ''; // Thêm biến để theo dõi sự thay đổi giai đoạn
+
 socket.on('taixiuTick', (data) => {
     if (data.phase === 'betting') {
         currentPhase = 'betting';
         timerDisplay.classList.remove('hidden');
         timerDisplay.textContent = data.timer;
         
-        // Dọn sạch bàn chơi cho ván mới
-        diceScene.classList.add('hidden');
-        bowl.classList.add('hidden');
-        document.getElementById('side-tai').classList.remove('winner-blink');
-        document.getElementById('side-xiu').classList.remove('winner-blink');
-        
-        // Reset tiền cược ván cũ
-        pendingBetTai = 0;
-        pendingBetXiu = 0;
-        confirmedBetTai = 0;
-        confirmedBetXiu = 0;
-        updateDisplay();
+        // CHỈ RESET KHI BẮT ĐẦU VÁN MỚI (CHUYỂN TỪ RESULT SANG BETTING)
+        if (lastPhase !== 'betting') {
+            diceScene.classList.add('hidden');
+            bowl.classList.add('hidden');
+            document.getElementById('side-tai').classList.remove('winner-blink');
+            document.getElementById('side-xiu').classList.remove('winner-blink');
+            
+            pendingBetTai = 0;
+            pendingBetXiu = 0;
+            confirmedBetTai = 0;
+            confirmedBetXiu = 0;
+            updateDisplay();
+        }
         
         // Cập nhật số người và Pool (Giữ nguyên icon và bố cục của sếp)
         document.getElementById('tai-total-pool').textContent = data.totalPool.tai.toLocaleString('vi-VN');
@@ -306,6 +309,8 @@ socket.on('taixiuTick', (data) => {
     } else {
         timerDisplay.classList.add('hidden');
     }
+    
+    lastPhase = data.phase; // Quan trọng: Cập nhật lại giai đoạn để không bị reset liên tục
 });
 
 socket.on('taixiuResult', (data) => {
