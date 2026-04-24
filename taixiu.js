@@ -401,33 +401,36 @@ function resetBets() {
     confirmedBetTai = 0;
     confirmedBetXiu = 0;
     selectedSide = null;
-    document.querySelectorAll('.side-panel').forEach(p => p.classList.remove('selected'));
+    document.querySelectorAll('.side-panel').forEach(p => p.classList.remove('selected', 'confirmed', 'winner-blink'));
     updateDisplay();
 }
 
 function startOpeningBowl() {
+    if (!dom.bowl) initDOMCache();
     // Tự động úp bát để sếp nặn
-    bowl.style.transition = 'none';
-    bowl.style.transform = 'translate(0px, 0px)';
-    bowl.style.opacity = '1';
-    bowl.classList.remove('hidden');
+    if (dom.bowl) {
+        dom.bowl.style.transition = 'none';
+        dom.bowl.style.transform = 'translate(0px, 0px)';
+        dom.bowl.style.opacity = '1';
+        dom.bowl.classList.remove('hidden');
+    }
     
     // Hiện xúc xắc ở dưới bát
-    diceScene.classList.remove('hidden');
-    dice1.style.transform = getTransform(currentResultDices[0]);
-    dice2.style.transform = getTransform(currentResultDices[1]);
-    dice3.style.transform = getTransform(currentResultDices[2]);
+    if (dom.diceScene) dom.diceScene.classList.remove('hidden');
+    if (dom.dice1) dom.dice1.style.transform = getTransform(currentResultDices[0]);
+    if (dom.dice2) dom.dice2.style.transform = getTransform(currentResultDices[1]);
+    if (dom.dice3) dom.dice3.style.transform = getTransform(currentResultDices[2]);
 }
 
 // --- LOGIC KÊNH CHAT ---
 function toggleChat() {
     const chat = document.getElementById('chat-container');
+    if (!chat) return;
     chat.classList.toggle('active');
     
-    // Nếu đang mở thì cuộn xuống cuối
     if (chat.classList.contains('active')) {
         const msgArea = document.getElementById('chat-messages');
-        msgArea.scrollTop = msgArea.scrollHeight;
+        if (msgArea) msgArea.scrollTop = msgArea.scrollHeight;
     }
 }
 
@@ -445,13 +448,19 @@ function addChatMessage(username, message, isSystem = false) {
     if (msgArea.children.length > 30) msgArea.removeChild(msgArea.firstChild);
 }
 
-document.getElementById('btn-send-chat').addEventListener('click', sendMyChat);
-document.getElementById('chat-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMyChat();
-});
+const btnSendChat = document.getElementById('btn-send-chat');
+if (btnSendChat) btnSendChat.addEventListener('click', sendMyChat);
+
+const chatInput = document.getElementById('chat-input');
+if (chatInput) {
+    chatInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') sendMyChat();
+    });
+}
 
 function sendMyChat() {
     const input = document.getElementById('chat-input');
+    if (!input) return;
     const msg = input.value.trim();
     if (msg) {
         addChatMessage(currentUser || 'Khách', msg);
@@ -464,13 +473,10 @@ function generateRandomName() {
     const prefixes = ['anh', 'boy', 'ga', 'trum', 'thanh', 'be', 'cong_tu', 'hiep_si', 'sat_thu', 'dai_gia', 'dan_choi', 'co_nang'];
     const names = ['tuan', 'hung', 'linh', 'lan', 'duong', 'vinh', 'nam', 'phong', 'thuy', 'mai', 'kien', 'hoang', 'dung', 'thanh', 'huyen'];
     const suffixes = ['_9x', '_2k', '_pro', '_vip', '_hanoi', '_baby', '_cute', '_bua', '_hack', '_vobo', '_88', '_99', 'dz', 'kkk'];
-    
     const p = prefixes[Math.floor(Math.random() * prefixes.length)];
     const n = names[Math.floor(Math.random() * names.length)];
     const s = suffixes[Math.floor(Math.random() * suffixes.length)];
     const r = Math.floor(Math.random() * 99);
-    
-    // Ngẫu nhiên kiểu đặt tên
     const type = Math.floor(Math.random() * 3);
     if (type === 0) return (n + s + r).toLowerCase();
     if (type === 1) return (p + '_' + n).toLowerCase();
@@ -483,8 +489,7 @@ const fakeMessages = [
     'ĐM lại ra Tài, ảo thật đấy!', 'Nhận kéo 1-1 về bờ, ai quan tâm inbox.', 'Cầu bệt Xỉu rồi, đừng bẻ anh em ơi.',
     'Sếp ơi cho em xin ít lộc!', 'Thằng kia biết cái gì mà nói, Tài chắc luôn.', 'Hết tiền rồi, ai cho vay ít không?',
     'Cầu này soi chuẩn 99%, Xỉu đi.', 'Nổ hũ đi nào!', 'Lại gãy rồi, đen quá.', 'Admin ơi xem lại cầu này cái.',
-    'Húp Xỉu 20M ngon lành!', 'Anh em theo tôi, ván này về Tài.', 'Đừng nghe nó, nó kéo lừa đấy.', 'Xin lộc sếp ơi!',
-    'Mẹ kiếp lại gãy cầu', 'Húp 5 loét nghỉ thôi', 'Ai kéo em về bờ với', 'Cầu này nhìn như sách giáo khoa ấy nhỉ'
+    'Húp Xỉu 20M ngon lành!', 'Anh em theo tôi, ván này về Tài.', 'Đừng nghe nó, nó kéo lừa đấy.', 'Xin lộc sếp ơi!'
 ];
 
 function initFakeChatHistory() {
@@ -505,32 +510,22 @@ function startFakeChat() {
     }, delay);
 }
 
-// Chạy khởi tạo và bắt đầu vòng lặp
 initFakeChatHistory();
 startFakeChat();
 
-socket.on('taixiuResult', (data) => {
-    if (currentPhase !== 'betting') return; // Tránh chạy lại nếu đã đang hiện kết quả
-    currentPhase = 'result';
-    
-    currentResultTotal = data.total;
-    diceScene.classList.remove('hidden');
-    
-    // Chạy hiệu ứng quay xúc xắc với kết quả từ Server
-    startRealisticRoll(data.dices);
-});
-
 socket.on('taixiuReset', () => {
-    resetGameUI();
+    resetBets();
 });
 
 socket.on('taixiuBetSuccess', ({ side, amount }) => {
     if (side === 'tai') {
         confirmedBetTai += amount;
-        document.getElementById('side-tai').classList.add('confirmed');
+        const p = document.getElementById('side-tai');
+        if (p) p.classList.add('confirmed');
     } else {
         confirmedBetXiu += amount;
-        document.getElementById('side-xiu').classList.add('confirmed');
+        const p = document.getElementById('side-xiu');
+        if (p) p.classList.add('confirmed');
     }
     
     pendingBetTai = 0;
@@ -546,115 +541,21 @@ socket.on('taixiuWin', ({ username, winAmount }) => {
     }
 });
 
-socket.on('taixiuError', (msg) => {
-    showCustomAlert(msg, 'LỖI');
-});
-
-socket.on('taixiuPoolUpdate', (pool) => {
-    document.getElementById('tai-total-pool').textContent = pool.tai.toLocaleString('vi-VN');
-    document.getElementById('xiu-total-pool').textContent = pool.xiu.toLocaleString('vi-VN');
-});
-
-// Loại bỏ vòng lặp cũ
-// function gameTick() { ... }
-// setInterval(gameTick, 200);
-
-// Chỉnh sửa lại startRealisticRoll để nhận mảng xúc xắc từ Server
-function startRealisticRoll(dices) {
-    isRollingAnimation = true;
-    
-    // Ẩn đồng hồ để sếp tập trung soi xúc xắc
-    if (dom.centerCircle) dom.centerCircle.classList.add('hidden');
-
-    if (dom.dice1) dom.dice1.style.transition = 'none'; 
-    if (dom.dice2) dom.dice2.style.transition = 'none'; 
-    if (dom.dice3) dom.dice3.style.transition = 'none';
-    
-    if (dom.dice1) dom.dice1.style.transform = 'rotateX(0deg) rotateY(0deg)';
-    if (dom.dice2) dom.dice2.style.transform = 'rotateX(0deg) rotateY(0deg)';
-    if (dom.dice3) dom.dice3.style.transform = 'rotateX(0deg) rotateY(0deg)';
-
-    setTimeout(() => {
-        if (dom.dice1) dom.dice1.style.transition = 'transform 1.5s cubic-bezier(0.1, 0.8, 0.2, 1)';
-        if (dom.dice2) dom.dice2.style.transition = 'transform 1.8s cubic-bezier(0.1, 0.8, 0.2, 1)';
-        if (dom.dice3) dom.dice3.style.transition = 'transform 2.1s cubic-bezier(0.1, 0.8, 0.2, 1)';
-        
-        if (dom.dice1) dom.dice1.style.transform = getTransform(dices[0]);
-        if (dom.dice2) dom.dice2.style.transform = getTransform(dices[1]);
-        if (dom.dice3) dom.dice3.style.transform = getTransform(dices[2]);
-    }, 50);
-    
-    // Bát úp xuống
-    setTimeout(() => {
-        if (dom.bowl) {
-            dom.bowl.style.transition = 'none';
-            dom.bowl.style.transform = 'translate(0px, -400px)';
-            dom.bowl.style.opacity = '1';
-            dom.bowl.classList.remove('hidden');
-        }
-        
-        setTimeout(() => {
-            if (dom.bowl) {
-                dom.bowl.style.transition = 'transform 0.2s cubic-bezier(0.5, 0, 1, 1)';
-                dom.bowl.style.transform = 'translate(0px, 0px)';
-            }
-        }, 50);
-    }, 1100);
-
-    setTimeout(() => {
-        isRollingAnimation = false;
-        currentPhase = 'revealing';
-    }, 2500);
-}
-
-// Chỉnh sửa finalizeResult (Chỉ diễn ra hiệu ứng, tiền do Server lo)
-function finalizeResult() {
-    if (currentPhase === 'resolving') return;
-    currentPhase = 'resolving';
-    
-    if (dom.bowl) {
-        dom.bowl.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-        dom.bowl.style.transform = `translate(0px, -200px)`;
-        dom.bowl.style.opacity = '0';
-    }
-    
-    let isTai = currentResultTotal >= 11;
-    let isXiu = currentResultTotal <= 10;
-    
-    // Hiệu ứng Tiền nhảy (Tinh tế)
-    if (confirmedBetTai > 0) {
-        if (isTai) showFloatingResult('tai', confirmedBetTai, true);
-        else showFloatingResult('tai', confirmedBetTai, false);
-    }
-    if (confirmedBetXiu > 0) {
-        if (isXiu) showFloatingResult('xiu', confirmedBetXiu, true);
-        else showFloatingResult('xiu', confirmedBetXiu, false);
-    }
-
-    setTimeout(() => {
-        bowl.classList.add('hidden');
-        
-        if (isTai) document.getElementById('side-tai').classList.add('winner-blink');
-        if (isXiu) document.getElementById('side-xiu').classList.add('winner-blink');
-        
-        updateHistoryDotsOnClient();
-    }, 500);
-}
-
-function showFloatingResult(side, amount, isWin) {
-    const parent = document.getElementById(`side-${side}`);
-    if (!parent) return;
-
-    const el = document.createElement('div');
-    el.className = `floating-result ${isWin ? 'win' : 'lose'}`;
-    el.textContent = isWin ? `+${amount.toLocaleString('vi-VN')}` : `-${amount.toLocaleString('vi-VN')}`;
-    
-    parent.appendChild(el);
-    
-    // Xóa sau khi diễn xong
-    setTimeout(() => {
-        el.remove();
-    }, 2000);
+function createGoldExplosion() {
+    // Hiệu ứng thắng cược đơn giản nhưng sang trọng
+    const explosion = document.createElement('div');
+    explosion.style.position = 'fixed';
+    explosion.style.top = '50%';
+    explosion.style.left = '50%';
+    explosion.style.transform = 'translate(-50%, -50%)';
+    explosion.style.width = '100vw';
+    explosion.style.height = '100vh';
+    explosion.style.background = 'radial-gradient(circle, rgba(255,215,0,0.4) 0%, rgba(0,0,0,0) 70%)';
+    explosion.style.pointerEvents = 'none';
+    explosion.style.zIndex = '9999';
+    explosion.style.animation = 'gold-flash 1s ease-out forwards';
+    document.body.appendChild(explosion);
+    setTimeout(() => explosion.remove(), 1000);
 }
 
 // --- LOGIC KÉO MỞ BÁT ---
@@ -669,7 +570,7 @@ function handleDragStart(e) {
     let clientY = e.touches ? e.touches[0].clientY : e.clientY;
     startX = clientX - currentX;
     startY = clientY - currentY;
-    bowl.style.transition = 'none';
+    if (dom.bowl) dom.bowl.style.transition = 'none';
 }
 
 function handleDragMove(e) {
@@ -679,7 +580,7 @@ function handleDragMove(e) {
     let clientY = e.touches ? e.touches[0].clientY : e.clientY;
     currentX = clientX - startX;
     currentY = clientY - startY;
-    bowl.style.transform = `translate(${currentX}px, ${currentY}px)`;
+    if (dom.bowl) dom.bowl.style.transform = `translate(${currentX}px, ${currentY}px)`;
 }
 
 function handleDragEnd() {
@@ -689,21 +590,59 @@ function handleDragEnd() {
     if (distance > 100) {
         finalizeResult();
     } else {
-        bowl.style.transition = 'transform 0.3s ease';
-        currentX = 0; currentY = 0;
-        bowl.style.transform = `translate(0px, 0px)`;
+        if (dom.bowl) {
+            dom.bowl.style.transition = 'transform 0.3s ease';
+            currentX = 0; currentY = 0;
+            dom.bowl.style.transform = `translate(0px, 0px)`;
+        }
     }
 }
 
-bowl.addEventListener('mousedown', handleDragStart);
+// Gán sự kiện mở bát vào dom cache
+if (!dom.bowl) initDOMCache();
+if (dom.bowl) {
+    dom.bowl.addEventListener('mousedown', handleDragStart);
+    dom.bowl.addEventListener('touchstart', handleDragStart);
+}
 document.addEventListener('mousemove', handleDragMove);
 document.addEventListener('mouseup', handleDragEnd);
-bowl.addEventListener('touchstart', handleDragStart);
 document.addEventListener('touchmove', handleDragMove, {passive: false});
 document.addEventListener('touchend', handleDragEnd);
 
-function updateHistoryDotsOnClient() {
-    // Phần này sếp có thể cập nhật từ Server gửi về cho chuẩn hơn
+// Chỉnh sửa finalizeResult để an toàn 100%
+function finalizeResult() {
+    if (currentPhase === 'resolving') return;
+    currentPhase = 'resolving';
+    
+    if (dom.bowl) {
+        dom.bowl.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
+        dom.bowl.style.transform = `translate(0px, -200px)`;
+        dom.bowl.style.opacity = '0';
+    }
+    
+    let isTai = currentResultTotal >= 11;
+    let isXiu = currentResultTotal <= 10;
+    
+    // Hiệu ứng Tiền nhảy
+    if (confirmedBetTai > 0) {
+        showFloatingResult('tai', confirmedBetTai, isTai);
+    }
+    if (confirmedBetXiu > 0) {
+        showFloatingResult('xiu', confirmedBetXiu, isXiu);
+    }
+
+    setTimeout(() => {
+        if (dom.bowl) dom.bowl.classList.add('hidden');
+        
+        if (isTai) {
+            const p = document.getElementById('side-tai');
+            if (p) p.classList.add('winner-blink');
+        }
+        if (isXiu) {
+            const p = document.getElementById('side-xiu');
+            if (p) p.classList.add('winner-blink');
+        }
+    }, 500);
 }
 
 // Chỉnh sửa Đặt cược để gửi lên Server
@@ -712,11 +651,9 @@ document.getElementById('btn-confirm').addEventListener('click', () => {
     
     if (pendingBetTai > 0) {
         socket.emit('taixiuBet', { username: currentUser, side: 'tai', amount: pendingBetTai });
-        pendingBetTai = 0; // Xóa ngay sau khi bấm để tránh bấm nhầm lần 2
     }
     if (pendingBetXiu > 0) {
         socket.emit('taixiuBet', { username: currentUser, side: 'xiu', amount: pendingBetXiu });
-        pendingBetXiu = 0; // Xóa ngay sau khi bấm
     }
     updateDisplay();
 });

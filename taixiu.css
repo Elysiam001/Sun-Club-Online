@@ -547,6 +547,22 @@ html, body {
     flex: 1;
 }
 
+@keyframes gold-flash {
+    0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+    50% { opacity: 1; transform: translate(-50%, -50%) scale(1.2); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+}
+
+.winner-blink {
+    animation: winner-pulse 0.5s ease infinite;
+}
+
+@keyframes winner-pulse {
+    0% { box-shadow: 0 0 10px #ffd700; background: rgba(255, 215, 0, 0.1); }
+    50% { box-shadow: 0 0 30px #ffd700; background: rgba(255, 215, 0, 0.3); }
+    100% { box-shadow: 0 0 10px #ffd700; background: rgba(255, 215, 0, 0.1); }
+}
+
 /* Ẩn scrollbar */
 .chips-container::-webkit-scrollbar {
     display: none;
