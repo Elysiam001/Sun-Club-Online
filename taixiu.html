@@ -2,11 +2,29 @@
 <html lang="vi">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Tài Xỉu Siêu Mượt</title>
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="taixiu.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        // Ngăn chặn phóng to khi chạm đa điểm (pinch zoom)
+        document.addEventListener('touchstart', function (event) {
+            if (event.touches.length > 1) {
+                event.preventDefault();
+            }
+        }, { passive: false });
+
+        // Ngăn chặn phóng to khi gõ nhanh 2 lần (double tap)
+        let lastTouchEnd = 0;
+        document.addEventListener('touchend', function (event) {
+            let now = (new Date()).getTime();
+            if (now - lastTouchEnd <= 300) {
+                event.preventDefault();
+            }
+            lastTouchEnd = now;
+        }, false);
+    </script>
 </head>
 <body>
 

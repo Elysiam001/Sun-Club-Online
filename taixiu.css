@@ -1,6 +1,6 @@
 /* --- TÀI XỈU 3D PREMIUN CSS --- */
 
-body {
+html, body {
     background-image: url('assets/bg_lobby.png');
     background-size: cover;
     background-position: center;
@@ -11,6 +11,9 @@ body {
     min-height: 100vh;
     margin: 0;
     backdrop-filter: blur(8px) brightness(0.6);
+    overflow: hidden; /* Không cho cuộn trang */
+    overscroll-behavior: none; /* Chống hiệu ứng kéo đàn hồi trên điện thoại */
+    touch-action: manipulation; /* Tối ưu hóa phản hồi chạm */
 }
 
 .btn-back-lobby {
