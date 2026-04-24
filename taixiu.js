@@ -164,6 +164,7 @@ document.querySelectorAll('.chip').forEach(chip => {
 
 document.getElementById('side-tai').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
+    selectedSide = 'tai'; // Đánh dấu là đang chọn Tài
     if (selectedChipVal > 0) {
         pendingBetTai += selectedChipVal;
         updateDisplay();
@@ -172,10 +173,29 @@ document.getElementById('side-tai').addEventListener('click', () => {
 
 document.getElementById('side-xiu').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
+    selectedSide = 'xiu'; // Đánh dấu là đang chọn Xỉu
     if (selectedChipVal > 0) {
         pendingBetXiu += selectedChipVal;
         updateDisplay();
     }
+});
+
+document.getElementById('btn-allin').addEventListener('click', () => {
+    if (currentPhase !== 'betting') return;
+    let balance = getBalance();
+    if (balance <= 0) return;
+    
+    // Nếu chưa chọn bên, mặc định là Tài
+    if (!selectedSide) selectedSide = 'tai';
+    
+    if (selectedSide === 'tai') {
+        pendingBetTai = balance;
+        pendingBetXiu = 0;
+    } else {
+        pendingBetXiu = balance;
+        pendingBetTai = 0;
+    }
+    updateDisplay();
 });
 
 document.getElementById('btn-cancel').addEventListener('click', () => {

@@ -263,7 +263,7 @@ function taixiuLoop() {
         if (taixiuState.phase === 'betting') {
             // Chuyển sang giai đoạn kết quả
             taixiuState.phase = 'result';
-            taixiuState.timer = 15; // 15 giây chờ kết quả và reset
+            taixiuState.timer = 10; // Đã giảm từ 15 xuống 10 giây cho nhanh
 
             // Quay xúc xắc
             taixiuState.dices = [
