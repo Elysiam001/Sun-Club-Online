@@ -99,9 +99,9 @@ document.getElementById('btn-logout').addEventListener('click', () => {
     window.location.href = 'index.html';
 });
 
-document.getElementById('game-taixiu').addEventListener('click', () => {
-    window.location.href = 'taixiu.html';
-});
+// document.getElementById('game-taixiu').addEventListener('click', () => {
+//     window.location.href = 'taixiu.html';
+// });
 
 // --- Modals Logic ---
 function openModal(id) {
@@ -472,6 +472,18 @@ if (btnCloseOverlay) {
     });
 }
 
+// Lắng nghe lệnh đóng game từ bên trong Iframe (Nút Home của game)
+window.addEventListener('message', (event) => {
+    if (event.data === 'closeGame') {
+        if (gameOverlay) {
+            gameOverlay.classList.add('hidden');
+            gameOverlay.style.display = 'none';
+            gameIframe.src = '';
+            socket.emit('login', { username: currentUser });
+        }
+    }
+});
+
 // Sự kiện
 document.getElementById('btn-event').addEventListener('click', () => {
     showCustomAlert("KHUYẾN MÃI CỰC KHỦNG:\n1. X2 Nạp lần đầu cho tân thủ.\n2. Đua TOP Tài Xỉu nhận ngay 100M VNĐ.\n3. Hoàn trả 1.5% mỗi ngày cho VIP.", "SỰ KIỆN HOT");
@@ -486,7 +498,9 @@ document.getElementById('btn-rules').addEventListener('click', () => {
 const gameTienLen = document.getElementById('game-tienlen');
 if (gameTienLen) {
     gameTienLen.addEventListener('click', () => {
-        window.location.href = 'cardgames.html?game=tienlen';
+        gameIframe.src = 'cardgames.html?game=tienlen';
+        gameOverlay.classList.remove('hidden');
+        gameOverlay.style.display = 'block';
     });
 }
 
@@ -494,7 +508,9 @@ if (gameTienLen) {
 const gamePhom = document.getElementById('game-phom');
 if (gamePhom) {
     gamePhom.addEventListener('click', () => {
-        window.location.href = 'cardgames.html?game=phom';
+        gameIframe.src = 'cardgames.html?game=phom';
+        gameOverlay.classList.remove('hidden');
+        gameOverlay.style.display = 'block';
     });
 }
 

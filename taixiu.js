@@ -149,8 +149,15 @@ function showNotification(msg, isError = false) {
     setTimeout(() => notification.classList.add('hidden'), 3000);
 }
 
-// Navigation
-document.getElementById('btn-back').addEventListener('click', () => { window.location.href = 'lobby.html'; });
+// Quay lại sảnh
+document.querySelector('.home-btn').addEventListener('click', () => {
+    // Nếu đang chạy trong Iframe (Overlay ở sảnh), thì báo cho sảnh đóng khung lại
+    if (window !== window.parent) {
+        window.parent.postMessage('closeGame', '*');
+    } else {
+        window.location.href = 'lobby.html';
+    }
+});
 document.getElementById('btn-close-game').addEventListener('click', () => { window.location.href = 'lobby.html'; });
 
 // --- LẮP LẠI LOGIC CHỌN CHÍP VÀ ĐẶT CƯỢC ---
