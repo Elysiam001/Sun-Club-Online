@@ -41,6 +41,27 @@ let confirmedBetTai = 0;
 let confirmedBetXiu = 0;
 let selectedSide = null;
 
+// --- 3D DICE CONFIG ---
+const faceRotations = {
+    1: 'rotateX(0deg) rotateY(0deg)',
+    2: 'rotateX(0deg) rotateY(-90deg)',
+    3: 'rotateX(-90deg) rotateY(0deg)',
+    4: 'rotateX(90deg) rotateY(0deg)',
+    5: 'rotateX(0deg) rotateY(90deg)',
+    6: 'rotateX(0deg) rotateY(180deg)'
+};
+
+function getTransform(faceValue) {
+    const spinsX = (Math.floor(Math.random() * 4) + 4) * 360; 
+    const spinsY = (Math.floor(Math.random() * 4) + 4) * 360;
+    let base = faceRotations[faceValue];
+    let matchX = base.match(/rotateX\(([-0-9]+)deg\)/);
+    let matchY = base.match(/rotateY\(([-0-9]+)deg\)/);
+    let finalX = parseInt(matchX[1]) + spinsX;
+    let finalY = parseInt(matchY[1]) + spinsY;
+    return `rotateX(${finalX}deg) rotateY(${finalY}deg)`;
+}
+
 function getFakeStats() {
     let hour = new Date().getHours();
     let baseUsers, basePool;
@@ -131,6 +152,37 @@ function showNotification(msg, isError = false) {
 // Navigation
 document.getElementById('btn-back').addEventListener('click', () => { window.location.href = 'lobby.html'; });
 document.getElementById('btn-close-game').addEventListener('click', () => { window.location.href = 'lobby.html'; });
+
+// --- LẮP LẠI LOGIC CHỌN CHÍP VÀ ĐẶT CƯỢC ---
+document.querySelectorAll('.chip').forEach(chip => {
+    chip.addEventListener('click', () => {
+        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+        chip.classList.add('active');
+        selectedChipVal = parseInt(chip.dataset.value);
+    });
+});
+
+document.getElementById('side-tai').addEventListener('click', () => {
+    if (currentPhase !== 'betting') return;
+    if (selectedChipVal > 0) {
+        pendingBetTai += selectedChipVal;
+        updateDisplay();
+    }
+});
+
+document.getElementById('side-xiu').addEventListener('click', () => {
+    if (currentPhase !== 'betting') return;
+    if (selectedChipVal > 0) {
+        pendingBetXiu += selectedChipVal;
+        updateDisplay();
+    }
+});
+
+document.getElementById('btn-cancel').addEventListener('click', () => {
+    pendingBetTai = 0;
+    pendingBetXiu = 0;
+    updateDisplay();
+});
 
 // --- Custom Alert Logic ---
 window.showCustomAlert = function(message, title = 'THÔNG BÁO') {
