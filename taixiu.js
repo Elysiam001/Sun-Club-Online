@@ -415,17 +415,43 @@ function finalizeResult() {
     bowl.style.transform = `translate(0px, -200px)`;
     bowl.style.opacity = '0';
     
+    let isTai = currentResultTotal >= 11;
+    let isXiu = currentResultTotal <= 10;
+    
+    // Hiệu ứng Tiền nhảy (Tinh tế)
+    if (confirmedBetTai > 0) {
+        if (isTai) showFloatingResult('tai', confirmedBetTai, true);
+        else showFloatingResult('tai', confirmedBetTai, false);
+    }
+    if (confirmedBetXiu > 0) {
+        if (isXiu) showFloatingResult('xiu', confirmedBetXiu, true);
+        else showFloatingResult('xiu', confirmedBetXiu, false);
+    }
+
     setTimeout(() => {
         bowl.classList.add('hidden');
-        
-        let isTai = currentResultTotal >= 11;
-        let isXiu = currentResultTotal <= 10;
         
         if (isTai) document.getElementById('side-tai').classList.add('winner-blink');
         if (isXiu) document.getElementById('side-xiu').classList.add('winner-blink');
         
         updateHistoryDotsOnClient();
     }, 500);
+}
+
+function showFloatingResult(side, amount, isWin) {
+    const parent = document.getElementById(`side-${side}`);
+    if (!parent) return;
+
+    const el = document.createElement('div');
+    el.className = `floating-result ${isWin ? 'win' : 'lose'}`;
+    el.textContent = isWin ? `+${amount.toLocaleString('vi-VN')}` : `-${amount.toLocaleString('vi-VN')}`;
+    
+    parent.appendChild(el);
+    
+    // Xóa sau khi diễn xong
+    setTimeout(() => {
+        el.remove();
+    }, 2000);
 }
 
 // --- LOGIC KÉO MỞ BÁT ---

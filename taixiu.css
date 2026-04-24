@@ -168,6 +168,30 @@ html, body {
     border-radius: 20px;
 }
 
+/* Hiệu ứng Tiền bay khi Thắng/Thua (Tinh tế) */
+.floating-result {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: 32px;
+    font-weight: 900;
+    pointer-events: none;
+    z-index: 1000;
+    animation: floatUp 2s ease-out forwards;
+    white-space: nowrap;
+    text-shadow: 0 0 10px rgba(0,0,0,0.8);
+}
+
+.floating-result.win { color: #ffd700; }
+.floating-result.lose { color: #ff3333; }
+
+@keyframes floatUp {
+    0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+    20% { transform: translate(-50%, -80%) scale(1.2); opacity: 1; }
+    100% { transform: translate(-50%, -200%) scale(1); opacity: 0; }
+}
+
 @keyframes textPulse {
     0% { transform: scale(1); text-shadow: 0 5px 5px rgba(0,0,0,0.9), 0 0 20px rgba(255,215,0,0.5); color: #ffd700; }
     50% { transform: scale(1.2); text-shadow: 0 5px 15px rgba(0,0,0,0.9), 0 0 40px #fff, 0 0 60px #fff; color: #fff; }
