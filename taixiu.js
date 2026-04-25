@@ -170,10 +170,10 @@ function startRealisticRoll(dices) {
     [dom.dice1, dom.dice2, dom.dice3].forEach(d => { if (d) d.style.transition = 'none'; });
     
     setTimeout(() => {
-        if (dom.dice1) { dom.dice1.style.transition = 'transform 1.5s cubic-bezier(0.1, 0.8, 0.2, 1)'; dom.dice1.style.transform = getDiceTransform(dices[0]); }
-        if (dom.dice2) { dom.dice2.style.transition = 'transform 1.8s cubic-bezier(0.1, 0.8, 0.2, 1)'; dom.dice2.style.transform = getDiceTransform(dices[1]); }
-        if (dom.dice3) { dom.dice3.style.transition = 'transform 2.1s cubic-bezier(0.1, 0.8, 0.2, 1)'; dom.dice3.style.transform = getDiceTransform(dices[2]); }
-    }, 50);
+        if (dom.dice1) { dom.dice1.style.transition = 'transform 1.8s cubic-bezier(0.15, 0.9, 0.25, 1)'; dom.dice1.style.transform = getDiceTransform(dices[0]); }
+        if (dom.dice2) { dom.dice2.style.transition = 'transform 2.0s cubic-bezier(0.15, 0.9, 0.25, 1)'; dom.dice2.style.transform = getDiceTransform(dices[1]); }
+        if (dom.dice3) { dom.dice3.style.transition = 'transform 2.2s cubic-bezier(0.15, 0.9, 0.25, 1)'; dom.dice3.style.transform = getDiceTransform(dices[2]); }
+    }, 100);
 
     setTimeout(() => {
         if (dom.bowl) {
@@ -197,8 +197,18 @@ function startRealisticRoll(dices) {
 }
 
 function getDiceTransform(val) {
-    const rots = { 1: 'rotateX(0deg) rotateY(0deg)', 2: 'rotateX(0deg) rotateY(-90deg)', 3: 'rotateX(-90deg) rotateY(0deg)', 4: 'rotateX(90deg) rotateY(0deg)', 5: 'rotateX(0deg) rotateY(90deg)', 6: 'rotateX(0deg) rotateY(180deg)' };
-    return rots[val] + ` rotateX(${Math.floor(Math.random()*4+4)*360}deg) rotateY(${Math.floor(Math.random()*4+4)*360}deg)`;
+    const rots = { 
+        1: 'rotateX(0deg) rotateY(0deg)', 
+        2: 'rotateX(0deg) rotateY(-90deg)', 
+        3: 'rotateX(-90deg) rotateY(0deg)', 
+        4: 'rotateX(90deg) rotateY(0deg)', 
+        5: 'rotateX(0deg) rotateY(90deg)', 
+        6: 'rotateX(0deg) rotateY(180deg)' 
+    };
+    // Quay ngẫu nhiên ít nhất 5-10 vòng để tạo hiệu ứng quay tít
+    const extraX = (Math.floor(Math.random() * 5) + 5) * 360;
+    const extraY = (Math.floor(Math.random() * 5) + 5) * 360;
+    return rots[val] + ` rotateX(${extraX}deg) rotateY(${extraY}deg)`;
 }
 
 function finalizeResult() {

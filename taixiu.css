@@ -121,10 +121,15 @@ html, body {
 }
 
 .timer-text {
+    position: absolute !important;
+    top: 50% !important;
+    left: 50% !important;
+    transform: translate(-50%, -50%) !important;
     font-size: 80px;
     font-weight: bold;
     color: var(--gold-light);
     text-shadow: 0 0 20px #ffd700;
+    z-index: 10;
 }
 
 .bowl {
@@ -143,13 +148,21 @@ html, body {
     height: 150px;
     position: relative;
     perspective: 800px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
 .dice-3d {
     width: 40px; height: 40px;
     position: absolute;
     transform-style: preserve-3d;
+    transition: transform 1.5s cubic-bezier(0.1, 0.8, 0.2, 1);
 }
+
+#dice-1 { top: 25px; left: 55px; }
+#dice-2 { top: 75px; left: 30px; }
+#dice-3 { top: 75px; left: 80px; }
 
 .face {
     position: absolute;
