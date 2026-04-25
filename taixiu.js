@@ -58,13 +58,24 @@ function initDOMCache() {
 window.addEventListener('load', () => {
     initDOMCache();
     socket.emit('getTaixiuState');
-    socket.emit('getUserBalance', currentUser);
+    
+    // Đồng bộ tiền với sảnh ngoài
+    syncBalanceWithLobby();
 });
+
+function syncBalanceWithLobby() {
+    const balances = JSON.parse(localStorage.getItem('casino_balances')) || {};
+    serverBalance = balances[currentUser] || 0;
+    updateDisplay();
+}
 
 // --- SOCKET EVENTS ---
 socket.on('balanceUpdate', (balance) => {
-    serverBalance = balance;
-    updateDisplay();
+    // Nếu server có dữ liệu mới thì cập nhật, không thì giữ nguyên từ localStorage
+    if (balance > 0) {
+        serverBalance = balance;
+        updateDisplay();
+    }
 });
 
 socket.on('taixiuTick', (data) => {
