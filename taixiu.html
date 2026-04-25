@@ -63,35 +63,46 @@
 
     <!-- UI Bàn Game -->
     <div class="game-wrapper">
-        <div class="game-board-premium">
+        <div class="game-board-premium red-theme">
             
             <!-- Header Bàn -->
             <div class="board-header">
-                <button class="icon-btn-round" id="btn-soicau"><i class="fa-solid fa-chart-line"></i></button>
-                <button class="icon-btn-round"><i class="fa-solid fa-circle-info"></i></button>
-                <div class="title-logo">TÀI XỈU <span id="round-id-display">#934042</span></div>
-                <button class="icon-btn-round" id="btn-bxh"><i class="fa-solid fa-trophy"></i></button>
-                <button class="icon-btn-round" id="btn-close-game"><i class="fa-solid fa-xmark"></i></button>
+                <div class="header-left">
+                    <button class="icon-btn-round" id="btn-soicau"><i class="fa-solid fa-chart-line"></i></button>
+                    <button class="icon-btn-round"><i class="fa-solid fa-question"></i></button>
+                    <button class="icon-btn-round"><i class="fa-solid fa-circle-info"></i></button>
+                </div>
+                
+                <div class="header-center">
+                    <div class="session-id-pill" id="round-id-display">#365586</div>
+                </div>
+
+                <div class="header-right">
+                    <button class="icon-btn-round" id="btn-bxh"><i class="fa-solid fa-trophy"></i></button>
+                    <button class="icon-btn-round"><i class="fa-solid fa-comments"></i></button>
+                    <button class="icon-btn-round" id="btn-close-game"><i class="fa-solid fa-xmark"></i></button>
+                </div>
             </div>
             
-            <!-- History Dots (Soi cầu nhanh trên bàn) -->
-            <div class="history-dots" id="history-dots-container"></div>
-
             <!-- Main Betting Area -->
             <div class="bet-area">
                 
                 <!-- TÀI -->
                 <div class="bet-side" id="side-tai">
-                    <div class="users-count" id="users-tai"><i class="fa-solid fa-users"></i> 2093</div>
+                    <div class="users-count" id="users-tai">1869 <i class="fa-solid fa-users"></i></div>
                     <div class="side-title">TÀI</div>
-                    <div class="side-total" id="tai-total-pool">741,648,460</div>
-                    <div class="my-pending-bet">CƯỢC: <span id="pending-bet-tai">0</span></div>
-                    <div class="my-confirmed-bet" id="my-bet-tai">0</div>
+                    <div class="side-total-box">
+                        <div class="side-total" id="tai-total-pool">873,724,316</div>
+                    </div>
+                    <div class="my-bets-container">
+                        <div class="my-confirmed-bet" id="my-bet-tai">0</div>
+                        <div class="my-pending-bet" id="pending-bet-tai">20,000,000</div>
+                    </div>
                 </div>
 
                 <!-- CENTER (DICE) -->
                 <div class="center-circle" id="center-circle-area">
-                    <div id="countdown-timer" class="timer-text">--</div>
+                    <div id="countdown-timer" class="timer-text">16</div>
                     
                     <!-- 3D Dice Container -->
                     <div class="dice-scene hidden" id="dice-scene">
@@ -127,54 +138,43 @@
 
                 <!-- XỈU -->
                 <div class="bet-side" id="side-xiu">
-                    <div class="users-count" id="users-xiu"><i class="fa-solid fa-users"></i> 1805</div>
+                    <div class="users-count" id="users-xiu">1907 <i class="fa-solid fa-users"></i></div>
                     <div class="side-title">XỈU</div>
-                    <div class="side-total" id="xiu-total-pool">741,648,460</div>
-                    <div class="my-pending-bet">CƯỢC: <span id="pending-bet-xiu">0</span></div>
-                    <div class="my-confirmed-bet" id="my-bet-xiu">0</div>
+                    <div class="side-total-box">
+                        <div class="side-total" id="xiu-total-pool">854,348,318</div>
+                    </div>
+                    <button class="btn-bet-small" id="btn-quick-bet-xiu">ĐẶT CƯỢC</button>
+                    <div class="hand-icon"><i class="fa-solid fa-hand-pointer"></i></div>
                 </div>
 
             </div>
 
-            <!-- Lịch sử (Chấm tròn dưới) -->
-            <div class="history-dots">
-                <div class="dot-tai"></div><div class="dot-xiu"></div><div class="dot-xiu"></div>
-                <div class="dot-tai"></div><div class="dot-tai"></div><div class="dot-xiu"></div>
-                <div class="dot-tai"></div><div class="dot-xiu"></div><div class="dot-tai"></div>
-                <div class="dot-tai"></div>
-            </div>
+            <!-- History Dots (Chấm tròn dưới) -->
+            <div class="history-dots-bar" id="history-dots-container"></div>
 
             <!-- Chips Area -->
             <div class="chips-container-wrapper">
-                <button class="nav-chip left-arrow"><i class="fa-solid fa-chevron-left"></i></button>
                 <div class="chips-container" id="chips-container">
-                    <button class="chip" data-val="100000">100K</button>
-                    <button class="chip" data-val="500000">500K</button>
-                    <button class="chip" data-val="1000000">1M</button>
-                    <button class="chip" data-val="5000000">5M</button>
-                    <button class="chip" data-val="10000000">10M</button>
-                    <button class="chip" data-val="50000000">50M</button>
-                    <button class="chip" data-val="100000000">100M</button>
-                    <button class="chip" data-val="200000000">200M</button>
-                    <button class="chip" data-val="500000000">500M</button>
-                    <button class="chip" data-val="1000000000">1T</button>
-                    <button class="chip" data-val="5000000000">5T</button>
-                    <button class="chip" data-val="10000000000">10T</button>
-                    <button class="chip" data-val="20000000000">20T</button>
-                    <button class="chip" data-val="50000000000">50T</button>
+                    <button class="chip-rect" data-val="1000">1K</button>
+                    <button class="chip-rect" data-val="10000">10K</button>
+                    <button class="chip-rect" data-val="50000">50K</button>
+                    <button class="chip-rect" data-val="100000">100K</button>
+                    <button class="chip-rect" data-val="500000">500K</button>
+                    <button class="chip-rect" data-val="5000000">5M</button>
+                    <button class="chip-rect" data-val="10000000">10M</button>
+                    <button class="chip-rect" data-val="50000000">50M</button>
                 </div>
-                <button class="nav-chip right-arrow"><i class="fa-solid fa-chevron-right"></i></button>
             </div>
 
             <!-- Actions Area -->
             <div class="actions-container">
-                <div class="action-balance"><i class="fa-solid fa-coins" style="color:var(--gold-light)"></i> Số dư: <span id="current-balance">0</span></div>
-                <div class="action-buttons">
-                    <button class="btn-action btn-allin" id="btn-allin">ALL-IN</button>
-                    <button class="btn-action btn-confirm" id="btn-confirm">ĐẶT CƯỢC</button>
-                    <button class="btn-action btn-cancel" id="btn-cancel">HỦY</button>
-                </div>
+                <button class="btn-pill btn-allin" id="btn-allin">ALL-IN</button>
+                <button class="btn-pill btn-confirm" id="btn-confirm">ĐẶT CƯỢC</button>
+                <button class="btn-pill btn-cancel" id="btn-cancel">HỦY</button>
             </div>
+
+        </div>
+    </div>
 
         </div>
     </div>

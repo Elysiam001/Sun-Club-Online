@@ -263,9 +263,9 @@ function startFakeChat() {
 startFakeChat();
 
 // User Interactions
-document.querySelectorAll('.chip').forEach(c => c.addEventListener('click', () => {
-    document.querySelectorAll('.chip').forEach(x => x.classList.remove('selected'));
-    c.classList.add('selected');
+document.querySelectorAll('.chip-rect').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.chip-rect').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
     selectedChipVal = parseInt(c.dataset.val);
 }));
 
