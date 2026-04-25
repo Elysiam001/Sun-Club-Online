@@ -69,8 +69,23 @@ window.addEventListener('load', () => {
 });
 
 function syncBalanceWithLobby() {
+    // 1. Kiểm tra localStorage (Key chuẩn của cardgames.js)
     const balances = JSON.parse(localStorage.getItem('casino_balances')) || {};
-    serverBalance = balances[currentUser] || 0;
+    let balance = balances[currentUser];
+    
+    // 2. Nếu không thấy, kiểm tra sessionStorage (Đề phòng sếp lưu ở đây)
+    if (balance === undefined) {
+        const sessionBalances = JSON.parse(sessionStorage.getItem('casino_balances')) || {};
+        balance = sessionBalances[currentUser];
+    }
+
+    // 3. Nếu vẫn không thấy, thử tìm bất kỳ con số nào liên quan đến balance
+    if (balance === undefined) {
+        balance = localStorage.getItem('player_balance') || sessionStorage.getItem('player_balance') || 0;
+    }
+
+    serverBalance = parseInt(balance) || 0;
+    console.log("Đã đồng bộ tiền từ sảnh:", serverBalance);
     updateDisplay();
 }
 

@@ -258,7 +258,7 @@ io.on('connection', (socket) => {
 // --- QUẢN LÝ GAME TÀI XỈU (VÒNG LẶP VĨNH CỬU) ---
 const taixiuState = {
     sessionId: 934042,
-    timer: 25,
+    timer: 40,
     phase: 'betting',
     dices: [1, 2, 3],
     totalPool: { tai: 0, xiu: 0 },
@@ -283,7 +283,7 @@ function taixiuLoop() {
 
         if (taixiuState.timer <= 0) {
             taixiuState.phase = 'result';
-            taixiuState.timer = 15;
+            taixiuState.timer = 10;
             taixiuState.dices = [
                 Math.floor(Math.random() * 6) + 1,
                 Math.floor(Math.random() * 6) + 1,
@@ -307,7 +307,7 @@ function taixiuLoop() {
     } else {
         if (taixiuState.timer <= 0) {
             taixiuState.phase = 'betting';
-            taixiuState.timer = 25; // Thời gian cược 25 giây
+            taixiuState.timer = 40; // Thời gian cược 40 giây
             taixiuState.sessionId++; // Tăng phiên cược mới
             
             // Reset số liệu ảo ván mới (Bắt đầu từ con số nhỏ)
