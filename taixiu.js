@@ -138,13 +138,40 @@ socket.on('taixiuBetSuccess', (data) => {
     if (data.side === 'tai') { confirmedBetTai += data.amount; pendingBetTai = 0; }
     else { confirmedBetXiu += data.amount; pendingBetXiu = 0; }
     updateDisplay();
+    addMsg("Hệ thống", `Cược ${data.side.toUpperCase()} ${data.amount.toLocaleString()} thành công!`);
+});
+
+socket.on('taixiuError', (msg) => {
+    addMsg("Hệ thống", msg, true);
+    // Rung nhẹ màn hình nếu lỗi (tùy chọn)
+    document.querySelector('.ruby-board').classList.add('shake');
+    setTimeout(() => document.querySelector('.ruby-board').classList.remove('shake'), 500);
+});
+
+socket.on('taixiuWin', (data) => {
+    if (data.username === currentUser) {
+        addMsg("Hệ thống", `Chúc mừng! Bạn đã thắng ${data.winAmount.toLocaleString()} VNĐ!`, false);
+        // Hiệu ứng tiền bay hoặc gì đó (tạm thời chat thông báo)
+    }
 });
 
 // --- UI DISPLAY ---
 function updateDisplay() {
     if (dom.balance) dom.balance.textContent = serverBalance.toLocaleString('vi-VN');
-    if (dom.mTai) dom.mTai.textContent = confirmedBetTai.toLocaleString('vi-VN');
-    if (dom.mXiu) dom.mXiu.textContent = confirmedBetXiu.toLocaleString('vi-VN');
+    
+    // Hiển thị tổng (Đã đặt + Đang chọn)
+    if (dom.mTai) {
+        const totalTai = confirmedBetTai + pendingBetTai;
+        dom.mTai.textContent = totalTai.toLocaleString('vi-VN');
+        if (pendingBetTai > 0) dom.mTai.style.color = '#ffff00'; // Màu vàng khi đang chọn
+        else dom.mTai.style.color = '#fff';
+    }
+    if (dom.mXiu) {
+        const totalXiu = confirmedBetXiu + pendingBetXiu;
+        dom.mXiu.textContent = totalXiu.toLocaleString('vi-VN');
+        if (pendingBetXiu > 0) dom.mXiu.style.color = '#ffff00'; // Màu vàng khi đang chọn
+        else dom.mXiu.style.color = '#fff';
+    }
 }
 
 function resetBets() {
@@ -234,24 +261,30 @@ document.getElementById('side-xiu').addEventListener('click', () => {
 document.querySelectorAll('.ruby-chip').forEach(c => c.addEventListener('click', () => {
     document.querySelectorAll('.ruby-chip').forEach(x => x.classList.remove('active'));
     c.classList.add('active');
-    selectedChipVal = parseInt(c.dataset.val);
+    selectedChipVal = parseInt(c.dataset.val) || 0;
     
-    // Quick bet if side is selected
+    // ĐẶT CƯỢC NGAY KHI BẤM CHIP (Cho giống game thật)
     if (selectedSide && currentPhase === 'betting') {
-        if (selectedSide === 'tai') pendingBetTai += selectedChipVal;
-        else pendingBetXiu += selectedChipVal;
-        
-        // Show pending in side
-        const pTai = document.getElementById('pending-bet-tai-txt'); // I'll add this to HTML or reuse
-        // For simplicity, just update confirmed display in real time for "feeling"
+        console.log("Đang đặt cược:", selectedSide, selectedChipVal);
+        socket.emit('taixiuBet', { username: currentUser, side: selectedSide, amount: selectedChipVal });
+        // Không cần cộng pending nữa vì đã gửi thẳng lên server
+    } else if (!selectedSide) {
+        addMsg("Hệ thống", "Vui lòng chọn cửa TÀI hoặc XỈU trước khi chọn tiền!");
     }
 }));
 
 // Action Buttons
 document.getElementById('btn-confirm').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
-    if (pendingBetTai > 0) socket.emit('taixiuBet', { username: currentUser, side: 'tai', amount: pendingBetTai });
-    if (pendingBetXiu > 0) socket.emit('taixiuBet', { username: currentUser, side: 'xiu', amount: pendingBetXiu });
+    // Nút xác nhận này giờ đóng vai trò dự phòng nếu có tiền treo (pending)
+    if (pendingBetTai > 0) {
+        socket.emit('taixiuBet', { username: currentUser, side: 'tai', amount: pendingBetTai });
+        console.log("Xác nhận cược TÀI:", pendingBetTai);
+    }
+    if (pendingBetXiu > 0) {
+        socket.emit('taixiuBet', { username: currentUser, side: 'xiu', amount: pendingBetXiu });
+        console.log("Xác nhận cược XỈU:", pendingBetXiu);
+    }
 });
 
 document.getElementById('btn-cancel').addEventListener('click', () => {
