@@ -1,35 +1,41 @@
-// --- TÀI XỈU 3D PREMIUN LOGIC (VERSION 2.0 - FIX ALL) ---
+/**
+ * TÀI XỈU RUBY - SUN CLUB
+ * High-End Implementation
+ */
+
 const socket = io();
 const currentUser = sessionStorage.getItem('casino_currentUser');
-if (!currentUser) window.location.href = 'index.html';
 
-let serverBalance = 0;
-let currentPhase = 'betting';
-let currentResultDices = [1, 2, 3];
-let currentResultTotal = 6;
+if (!currentUser) {
+    window.location.href = 'index.html';
+}
+
+// State Management
+let currentPhase = 'betting'; // betting, result, revealing, resolving
 let lastPhase = '';
-let isRollingAnimation = false;
-
-// Betting state
-let selectedChipVal = 0;
+let serverBalance = 0;
 let pendingBetTai = 0;
 let pendingBetXiu = 0;
 let confirmedBetTai = 0;
 let confirmedBetXiu = 0;
+let selectedChipVal = 10000;
 let selectedSide = null;
+let currentResultDices = [1, 2, 3];
+let currentResultTotal = 6;
+let isRollingAnimation = false;
 
 // DOM Cache
 const dom = {
     balance: null, pTai: null, pXiu: null, mTai: null, mXiu: null,
     uT: null, uX: null, poolT: null, poolX: null,
     timer: null, diceScene: null, bowl: null,
-    dice1: null, dice2: null, dice3: null, centerCircle: null,
+    dice1: null, dice2: null, dice3: null,
     roundId: null, chatContainer: null, historyContainer: null
 };
 
 function initDOMCache() {
     dom.balance = document.getElementById('current-balance');
-    dom.pTai = document.getElementById('pending-bet-tai');
+    dom.pTai = document.getElementById('pending-bet-tai'); // Use same IDs but in new structure
     dom.pXiu = document.getElementById('pending-bet-xiu');
     dom.mTai = document.getElementById('my-bet-tai');
     dom.mXiu = document.getElementById('my-bet-xiu');
@@ -43,125 +49,92 @@ function initDOMCache() {
     dom.dice1 = document.getElementById('dice-1');
     dom.dice2 = document.getElementById('dice-2');
     dom.dice3 = document.getElementById('dice-3');
-    dom.centerCircle = document.getElementById('center-circle-area');
     dom.roundId = document.getElementById('round-id-display');
     dom.chatContainer = document.getElementById('chat-container');
     dom.historyContainer = document.getElementById('history-dots-container');
 }
 
-// Initialize on Load
+// --- INITIALIZATION ---
 window.addEventListener('load', () => {
     initDOMCache();
-    
-    // Tự động chọn chip đầu tiên cho sếp
-    const chips = document.querySelectorAll('.chip');
-    if (chips.length > 0) chips[0].click();
-
-    // Attach drag events
-    if (dom.bowl) {
-        dom.bowl.addEventListener('mousedown', onStart);
-        dom.bowl.addEventListener('touchstart', onStart, {passive: false});
-    }
-    document.addEventListener('mousemove', onMove);
-    document.addEventListener('mouseup', onEnd);
-    document.addEventListener('touchmove', onMove, {passive: false});
-    document.addEventListener('touchend', onEnd);
+    socket.emit('getTaixiuState');
+    socket.emit('getUserBalance', currentUser);
 });
 
-// Socket Events
-socket.emit('login', { username: currentUser });
-socket.on('loginSuccess', (data) => { if (data.username === currentUser) { serverBalance = data.balance; updateDisplay(); } });
-socket.on('balanceUpdate', (data) => { if (data.username === currentUser) { serverBalance = data.newBalance; updateDisplay(); } });
-
-// Stats Management
-let targetStats = { taiUsers: 0, xiuUsers: 0, taiPool: 0, xiuPool: 0 };
-let displayStats = { taiUsers: 0, xiuUsers: 0, taiPool: 0, xiuPool: 0 };
-
-function updateSmoothStats() {
-    const speed = 0.15;
-    displayStats.taiUsers = Math.ceil(displayStats.taiUsers + (targetStats.taiUsers - displayStats.taiUsers) * speed);
-    displayStats.xiuUsers = Math.ceil(displayStats.xiuUsers + (targetStats.xiuUsers - displayStats.xiuUsers) * speed);
-    displayStats.taiPool = Math.ceil(displayStats.taiPool + (targetStats.taiPool - displayStats.taiPool) * speed);
-    displayStats.xiuPool = Math.ceil(displayStats.xiuPool + (targetStats.xiuPool - displayStats.xiuPool) * speed);
-
-    if (dom.uT) dom.uT.innerHTML = `<i class="fa-solid fa-users"></i> ${displayStats.taiUsers.toLocaleString()}`;
-    if (dom.uX) dom.uX.innerHTML = `<i class="fa-solid fa-users"></i> ${displayStats.xiuUsers.toLocaleString()}`;
-    if (dom.poolT) dom.poolT.textContent = displayStats.taiPool.toLocaleString();
-    if (dom.poolX) dom.poolX.textContent = displayStats.xiuPool.toLocaleString();
-}
-setInterval(updateSmoothStats, 100);
+// --- SOCKET EVENTS ---
+socket.on('balanceUpdate', (balance) => {
+    serverBalance = balance;
+    updateDisplay();
+});
 
 socket.on('taixiuTick', (data) => {
     if (!data) return;
+    
+    // Update Timer
     if (dom.timer) {
         dom.timer.textContent = data.timer !== undefined ? data.timer : '--';
-        // Đảm bảo timer luôn hiện nếu đang ở phase betting
         if (data.phase === 'betting') dom.timer.classList.remove('hidden');
     }
+
+    // Update Round ID
     if (dom.roundId && data.sessionId) dom.roundId.textContent = `#${data.sessionId}`;
-    
+
+    // Update History
     if (data.history && dom.historyContainer) {
         dom.historyContainer.innerHTML = data.history.map(h => 
             `<div class="dot-${h.result}"></div>`
         ).join('');
     }
 
-    if (data.fakeTai && data.fakeXiu && data.totalPool) {
-        targetStats.taiUsers = (data.fakeTai.users || 0) + (data.totalUsers.tai || 0);
-        targetStats.xiuUsers = (data.fakeXiu.users || 0) + (data.totalUsers.xiu || 0);
-        targetStats.taiPool = (data.fakeTai.pool || 0) + (data.totalPool.tai || 0);
-        targetStats.xiuPool = (data.fakeXiu.pool || 0) + (data.totalPool.xiu || 0);
-    }
+    // Update Stats (Simplified for clean UI)
+    if (dom.uT) dom.uT.textContent = ((data.fakeTai?.users || 0) + (data.totalUsers?.tai || 0)).toLocaleString();
+    if (dom.uX) dom.uX.textContent = ((data.fakeXiu?.users || 0) + (data.totalUsers?.xiu || 0)).toLocaleString();
+    if (dom.poolT) dom.poolT.textContent = ((data.fakeTai?.pool || 0) + (data.totalPool?.tai || 0)).toLocaleString();
+    if (dom.poolX) dom.poolX.textContent = ((data.fakeXiu?.pool || 0) + (data.totalPool?.xiu || 0)).toLocaleString();
 
+    // Phase Transitions
     if (data.phase && data.phase !== lastPhase) {
         lastPhase = data.phase;
-        if (data.phase === 'betting') {
-            currentPhase = 'betting';
-            if (dom.timer) dom.timer.classList.remove('hidden');
-            if (dom.diceScene) dom.diceScene.classList.add('hidden');
-            if (dom.bowl) dom.bowl.classList.add('hidden');
-            document.querySelectorAll('.bet-side').forEach(p => p.classList.remove('winner-blink', 'confirmed', 'selected'));
-            resetBets();
-        } else if (data.phase === 'result') {
-            currentPhase = 'result';
-            currentResultDices = data.dices || [1, 2, 3];
-            currentResultTotal = currentResultDices[0] + currentResultDices[1] + currentResultDices[2];
-            startRealisticRoll(currentResultDices);
-        }
+        handlePhaseChange(data.phase, data.dices);
     }
 });
 
-socket.on('taixiuBetSuccess', ({ side, amount }) => {
-    if (side === 'tai') confirmedBetTai += amount; else confirmedBetXiu += amount;
-    const p = document.getElementById(`side-${side}`);
-    if (p) p.classList.add('confirmed');
-    pendingBetTai = 0; pendingBetXiu = 0;
+function handlePhaseChange(phase, dices) {
+    if (phase === 'betting') {
+        currentPhase = 'betting';
+        if (dom.timer) dom.timer.classList.remove('hidden');
+        if (dom.diceScene) dom.diceScene.classList.add('hidden');
+        if (dom.bowl) dom.bowl.classList.add('hidden');
+        document.querySelectorAll('.bet-panel').forEach(p => p.classList.remove('winner-blink', 'active'));
+        resetBets();
+    } else if (phase === 'result') {
+        currentPhase = 'result';
+        currentResultDices = dices || [1, 2, 3];
+        currentResultTotal = currentResultDices.reduce((a,b) => a+b, 0);
+        startRealisticRoll(currentResultDices);
+    }
+}
+
+socket.on('taixiuBetSuccess', (data) => {
+    if (data.side === 'tai') { confirmedBetTai += data.amount; pendingBetTai = 0; }
+    else { confirmedBetXiu += data.amount; pendingBetXiu = 0; }
     updateDisplay();
-    showNotification(`ĐẶT CƯỢC THÀNH CÔNG: ${amount.toLocaleString()} VNĐ`);
 });
 
-socket.on('taixiuWin', ({ username, winAmount }) => {
-    if (username === currentUser) {
-        showNotification(`THẮNG LỚN: ${winAmount.toLocaleString()} VNĐ!`);
-        createGoldExplosion();
-    }
-});
-
-// UI Display
+// --- UI DISPLAY ---
 function updateDisplay() {
     if (dom.balance) dom.balance.textContent = serverBalance.toLocaleString('vi-VN');
-    if (dom.pTai) dom.pTai.textContent = pendingBetTai.toLocaleString('vi-VN');
-    if (dom.pXiu) dom.pXiu.textContent = pendingBetXiu.toLocaleString('vi-VN');
     if (dom.mTai) dom.mTai.textContent = confirmedBetTai.toLocaleString('vi-VN');
     if (dom.mXiu) dom.mXiu.textContent = confirmedBetXiu.toLocaleString('vi-VN');
 }
 
 function resetBets() {
     pendingBetTai = 0; pendingBetXiu = 0; confirmedBetTai = 0; confirmedBetXiu = 0;
+    selectedSide = null;
     updateDisplay();
 }
 
-// Animation Logic
+// --- ANIMATION LOGIC ---
 function startRealisticRoll(dices) {
     isRollingAnimation = true;
     if (dom.timer) dom.timer.classList.add('hidden');
@@ -182,32 +155,23 @@ function startRealisticRoll(dices) {
             dom.bowl.style.opacity = '1';
             dom.bowl.classList.remove('hidden');
             setTimeout(() => {
-                dom.bowl.style.transition = 'transform 0.3s ease-in';
+                dom.bowl.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                 dom.bowl.style.transform = 'translate(0,0)';
             }, 50);
         }
     }, 1100);
 
     setTimeout(() => { isRollingAnimation = false; currentPhase = 'revealing'; }, 2500);
-
-    // Tự động mở bát sau 8 giây nếu sếp không nặn
-    setTimeout(() => {
-        if (currentPhase === 'revealing') finalizeResult();
-    }, 10000);
 }
 
 function getDiceTransform(val) {
     const rots = { 
-        1: 'rotateX(0deg) rotateY(0deg)', 
-        2: 'rotateX(0deg) rotateY(-90deg)', 
-        3: 'rotateX(-90deg) rotateY(0deg)', 
-        4: 'rotateX(90deg) rotateY(0deg)', 
-        5: 'rotateX(0deg) rotateY(90deg)', 
-        6: 'rotateX(0deg) rotateY(180deg)' 
+        1: 'rotateX(0deg) rotateY(0deg)', 2: 'rotateX(0deg) rotateY(-90deg)', 
+        3: 'rotateX(-90deg) rotateY(0deg)', 4: 'rotateX(90deg) rotateY(0deg)', 
+        5: 'rotateX(0deg) rotateY(90deg)', 6: 'rotateX(0deg) rotateY(180deg)' 
     };
-    // Quay ngẫu nhiên ít nhất 5-10 vòng để tạo hiệu ứng quay tít
-    const extraX = (Math.floor(Math.random() * 5) + 5) * 360;
-    const extraY = (Math.floor(Math.random() * 5) + 5) * 360;
+    const extraX = (Math.floor(Math.random() * 6) + 6) * 360;
+    const extraY = (Math.floor(Math.random() * 6) + 6) * 360;
     return rots[val] + ` rotateX(${extraX}deg) rotateY(${extraY}deg)`;
 }
 
@@ -215,129 +179,99 @@ function finalizeResult() {
     if (currentPhase === 'resolving') return;
     currentPhase = 'resolving';
     if (dom.bowl) {
-        dom.bowl.style.transition = 'transform 0.5s ease, opacity 0.5s ease';
-        dom.bowl.style.transform = 'translate(0, -200px)';
+        dom.bowl.style.transition = 'transform 0.8s ease-in, opacity 0.5s ease';
+        dom.bowl.style.transform = 'translate(150px, -150px) rotate(20deg)';
         dom.bowl.style.opacity = '0';
     }
     let isTai = currentResultTotal >= 11;
-    if (confirmedBetTai > 0) showFloatingResult('tai', confirmedBetTai, isTai);
-    if (confirmedBetXiu > 0) showFloatingResult('xiu', confirmedBetXiu, !isTai);
     setTimeout(() => {
         if (dom.bowl) dom.bowl.classList.add('hidden');
-        const el = document.getElementById(isTai ? 'side-tai' : 'side-xiu');
+        const side = isTai ? 'tai' : 'xiu';
+        const el = document.getElementById(`side-${side}`);
         if (el) el.classList.add('winner-blink');
     }, 500);
 }
 
-function showFloatingResult(side, amount, isWin) {
-    const p = document.getElementById(`side-${side}`);
-    if (!p) return;
-    const el = document.createElement('div');
-    el.className = `floating-result ${isWin ? 'win' : 'lose'}`;
-    el.textContent = (isWin ? '+' : '-') + amount.toLocaleString();
-    p.appendChild(el);
-    setTimeout(() => el.remove(), 2000);
-}
+// --- USER INTERACTIONS ---
 
-// Chat functions
-function toggleChat() {
-    if (dom.chatContainer) {
-        dom.chatContainer.classList.toggle('active');
-    }
-}
-window.toggleChat = toggleChat; // Export to global for inline onclick
-
-// Drag logic
-let isDragging = false, startX = 0, startY = 0, currX = 0, currY = 0;
-function onStart(e) { if (currentPhase !== 'revealing') return; isDragging = true; let c = e.touches ? e.touches[0] : e; startX = c.clientX - currX; startY = c.clientY - currY; if (dom.bowl) dom.bowl.style.transition = 'none'; }
-function onMove(e) { if (!isDragging) return; e.preventDefault(); let c = e.touches ? e.touches[0] : e; currX = c.clientX - startX; currY = c.clientY - startY; if (dom.bowl) dom.bowl.style.transform = `translate(${currX}px, ${currY}px)`; }
-function onEnd() { if (!isDragging) return; isDragging = false; if (Math.sqrt(currX*currX + currY*currY) > 100) finalizeResult(); else if (dom.bowl) { dom.bowl.style.transition = 'transform 0.3s ease'; currX = 0; currY = 0; dom.bowl.style.transform = 'translate(0,0)'; } }
-function startFakeChat() {
-    setTimeout(() => {
-        const names = ['tuan','hung','linh','be_cute','anh_pro','dai_gia_88','kiet_xu','huyen_my'];
-        const msgs = ['Xỉu đẹp!','Tài đi anh em!','Húp rồi, ngon quá!','Đen quá, gãy cầu rồi.','Lên Tài đi nào!','Cầu này bệt Xỉu rồi.'];
-        addMsg(names[Math.floor(Math.random()*names.length)], msgs[Math.floor(Math.random()*msgs.length)]);
-        startFakeChat();
-    }, Math.random()*5000+3000);
-}
-startFakeChat();
-
-// User Interactions
-document.querySelectorAll('.chip-rect').forEach(c => c.addEventListener('click', () => {
-    document.querySelectorAll('.chip-rect').forEach(x => x.classList.remove('active'));
-    c.classList.add('active');
-    selectedChipVal = parseInt(c.dataset.val);
-}));
-
+// Side Selection
 document.getElementById('side-tai').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
     selectedSide = 'tai';
-    document.getElementById('side-tai').classList.add('selected');
-    document.getElementById('side-xiu').classList.remove('selected');
-    if (selectedChipVal > 0) { pendingBetTai += selectedChipVal; updateDisplay(); }
+    document.getElementById('side-tai').classList.add('active');
+    document.getElementById('side-xiu').classList.remove('active');
 });
 
 document.getElementById('side-xiu').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
     selectedSide = 'xiu';
-    document.getElementById('side-xiu').classList.add('selected');
-    document.getElementById('side-tai').classList.remove('selected');
-    if (selectedChipVal > 0) { pendingBetXiu += selectedChipVal; updateDisplay(); }
+    document.getElementById('side-xiu').classList.add('active');
+    document.getElementById('side-tai').classList.remove('active');
 });
 
+// Chip Selection
+document.querySelectorAll('.ruby-chip').forEach(c => c.addEventListener('click', () => {
+    document.querySelectorAll('.ruby-chip').forEach(x => x.classList.remove('active'));
+    c.classList.add('active');
+    selectedChipVal = parseInt(c.dataset.val);
+    
+    // Quick bet if side is selected
+    if (selectedSide && currentPhase === 'betting') {
+        if (selectedSide === 'tai') pendingBetTai += selectedChipVal;
+        else pendingBetXiu += selectedChipVal;
+        
+        // Show pending in side
+        const pTai = document.getElementById('pending-bet-tai-txt'); // I'll add this to HTML or reuse
+        // For simplicity, just update confirmed display in real time for "feeling"
+    }
+}));
+
+// Action Buttons
 document.getElementById('btn-confirm').addEventListener('click', () => {
     if (currentPhase !== 'betting') return;
     if (pendingBetTai > 0) socket.emit('taixiuBet', { username: currentUser, side: 'tai', amount: pendingBetTai });
     if (pendingBetXiu > 0) socket.emit('taixiuBet', { username: currentUser, side: 'xiu', amount: pendingBetXiu });
-    updateDisplay();
 });
 
 document.getElementById('btn-cancel').addEventListener('click', () => {
     pendingBetTai = 0; pendingBetXiu = 0;
-    document.querySelectorAll('.bet-side').forEach(s => s.classList.remove('selected'));
     updateDisplay();
 });
 
 document.getElementById('btn-allin').addEventListener('click', () => {
     if (currentPhase !== 'betting' || !selectedSide) return;
     let rem = serverBalance - (confirmedBetTai + confirmedBetXiu);
-    if (rem > 0) { if (selectedSide === 'tai') pendingBetTai = rem; else pendingBetXiu = rem; updateDisplay(); }
+    if (rem > 0) {
+        if (selectedSide === 'tai') pendingBetTai = rem;
+        else pendingBetXiu = rem;
+    }
 });
 
-// Notifications
-function showNotification(msg, isErr = false) {
-    const el = document.getElementById('notification');
-    if (!el) return;
-    el.textContent = msg;
-    el.className = `notification ${isErr ? 'error' : ''}`;
-    el.classList.remove('hidden');
-    setTimeout(() => el.classList.add('hidden'), 3000);
-}
+// Bowl Drag
+let isDragging = false, startX = 0, startY = 0, currX = 0, currY = 0;
+document.getElementById('bowl-cover').addEventListener('mousedown', onStart);
+document.getElementById('bowl-cover').addEventListener('touchstart', onStart);
+window.addEventListener('mousemove', onMove);
+window.addEventListener('touchmove', onMove);
+window.addEventListener('mouseup', onEnd);
+window.addEventListener('touchend', onEnd);
 
-function createGoldExplosion() {
-    const el = document.createElement('div');
-    el.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);width:100vw;height:100vh;background:radial-gradient(circle,rgba(255,215,0,0.4),transparent 70%);pointer-events:none;z-index:9999;animation:gold-flash 1s forwards;';
-    document.body.appendChild(el);
-    setTimeout(() => el.remove(), 1000);
-}
+function onStart(e) { if (currentPhase !== 'revealing') return; isDragging = true; let c = e.touches ? e.touches[0] : e; startX = c.clientX - currX; startY = c.clientY - currY; if (dom.bowl) dom.bowl.style.transition = 'none'; }
+function onMove(e) { if (!isDragging) return; e.preventDefault(); let c = e.touches ? e.touches[0] : e; currX = c.clientX - startX; currY = c.clientY - startY; if (dom.bowl) dom.bowl.style.transform = `translate(${currX}px, ${currY}px)`; }
+function onEnd() { if (!isDragging) return; isDragging = false; if (Math.sqrt(currX*currX + currY*currY) > 80) finalizeResult(); else if (dom.bowl) { dom.bowl.style.transition = 'transform 0.3s ease'; currX = 0; currY = 0; dom.bowl.style.transform = 'translate(0,0)'; } }
 
-// Chat
+// --- CHAT SYSTEM ---
+function toggleChat() {
+    document.getElementById('chat-container').classList.toggle('active');
+}
+window.toggleChat = toggleChat;
+
 function addMsg(user, msg, isSystem = false) {
     const a = document.getElementById('chat-messages');
-    if (a) {
-        const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
-        const nameDisplay = user === currentUser ? 'Bạn' : (user.length > 5 ? user.substring(0, 5) + '...' : user);
-        const chatClass = isSystem ? 'system' : (user === currentUser ? 'me' : '');
-        
-        a.insertAdjacentHTML('beforeend', `
-            <div class="chat-item ${chatClass}">
-                <span class="chat-time">${time}</span>
-                <span class="username">${nameDisplay}:</span> 
-                <span class="msg-text">${msg}</span>
-            </div>
-        `);
-        a.scrollTop = a.scrollHeight;
-    }
+    if (!a) return;
+    const chatClass = isSystem ? 'system' : (user === currentUser ? 'me' : '');
+    a.insertAdjacentHTML('beforeend', `<div class="chat-item ${chatClass}"><span class="username">${user}:</span> ${msg}</div>`);
+    a.scrollTop = a.scrollHeight;
 }
 
 document.getElementById('btn-send-chat').addEventListener('click', () => {
@@ -348,20 +282,16 @@ document.getElementById('btn-send-chat').addEventListener('click', () => {
     }
 });
 
-document.getElementById('chat-input').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') document.getElementById('btn-send-chat').click();
-});
-
-socket.on('chatMessage', (data) => {
-    addMsg(data.username, data.message);
-});
+socket.on('chatMessage', (data) => addMsg(data.username, data.message));
 
 // Modals
-const modalBxh = document.getElementById('modal-bxh');
-if (document.getElementById('btn-bxh')) document.getElementById('btn-bxh').addEventListener('click', () => { modalBxh.classList.remove('hidden'); socket.emit('getLeaderboard'); });
-if (document.getElementById('btn-close-bxh')) document.getElementById('btn-close-bxh').addEventListener('click', () => modalBxh.classList.add('hidden'));
+document.getElementById('btn-bxh').addEventListener('click', () => { 
+    document.getElementById('modal-bxh').classList.remove('hidden'); 
+    socket.emit('getLeaderboard'); 
+});
+document.getElementById('btn-close-bxh').addEventListener('click', () => document.getElementById('modal-bxh').classList.add('hidden'));
 
 socket.on('leaderboardData', (data) => {
     const container = document.getElementById('rank-list-container');
-    if (container) container.innerHTML = data.map((r, i) => `<div class="rank-item"><span>#${i+1}</span><span>${r.name}</span><span class="rank-money">${r.money.toLocaleString()}</span></div>`).join('');
+    if (container) container.innerHTML = data.map((r, i) => `<div class="rank-item"><span>#${i+1}</span><span>${r.name}</span><span class="money">${r.money.toLocaleString()}</span></div>`).join('');
 });

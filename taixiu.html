@@ -3,237 +3,158 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Tài Xỉu Siêu Mượt</title>
+    <title>Tài Xỉu Ruby - Sun Club</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
     <link rel="stylesheet" href="taixiu.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        // Ngăn chặn phóng to khi chạm đa điểm (pinch zoom)
-        document.addEventListener('touchstart', function (event) {
-            if (event.touches.length > 1) {
-                event.preventDefault();
-            }
-        }, { passive: false });
-
-        // Ngăn chặn phóng to khi gõ nhanh 2 lần (double tap)
-        let lastTouchEnd = 0;
-        document.addEventListener('touchend', function (event) {
-            let now = (new Date()).getTime();
-            if (now - lastTouchEnd <= 300) {
-                event.preventDefault();
-            }
-            lastTouchEnd = now;
-        }, false);
-
-        // TỰ ĐỘNG CĂN CHỈNH KÍCH THƯỚC (RESPONSIVE)
-        function autoScaleGame() {
-            const wrapper = document.querySelector('.game-wrapper');
-            if (!wrapper) return;
-
-            const winW = window.innerWidth;
-            const winH = window.innerHeight;
-            
-            // Kích thước chuẩn của thiết kế
-            const designW = 950; 
-            const designH = 680;
-
-            const scaleW = winW / designW;
-            const scaleH = winH / designH;
-            
-            // Chọn tỷ lệ nhỏ nhất để đảm bảo không bị cắt
-            let finalScale = Math.min(scaleW, scaleH);
-            
-            // Không cho phóng to quá 1.1 lần trên máy tính to
-            if (finalScale > 1.1) finalScale = 1.1;
-
-            wrapper.style.transform = `scale(${finalScale})`;
-        }
-
-        window.addEventListener('resize', autoScaleGame);
-        window.addEventListener('orientationchange', () => setTimeout(autoScaleGame, 200));
-        document.addEventListener('DOMContentLoaded', autoScaleGame);
-    </script>
 </head>
-<body>
+<body class="ruby-theme">
 
-    <div id="notification" class="notification hidden" style="z-index: 1000;"></div>
+    <div class="game-container">
+        <!-- Nút quay về -->
+        <a href="lobby.html" class="back-btn"><i class="fa-solid fa-house"></i></a>
 
-    <!-- Nút trở về (Ẩn đi nếu làm popup, ở đây giữ làm nút back) -->
-    <button id="btn-back" class="btn-back-lobby"><i class="fa-solid fa-house"></i></button>
-
-    <!-- UI Bàn Game -->
-    <div class="game-wrapper">
-        <div class="game-board-premium red-theme">
+        <!-- BÀN GAME CHÍNH -->
+        <div class="ruby-board">
             
-            <!-- Header Bàn -->
-            <div class="board-header">
-                <div class="header-left">
-                    <button class="icon-btn-round" id="btn-soicau"><i class="fa-solid fa-chart-line"></i></button>
-                    <button class="icon-btn-round"><i class="fa-solid fa-question"></i></button>
-                    <button class="icon-btn-round"><i class="fa-solid fa-circle-info"></i></button>
+            <!-- Header: Thông tin phiên -->
+            <div class="ruby-header">
+                <div class="header-tools left">
+                    <button id="btn-soicau"><i class="fa-solid fa-chart-line"></i></button>
+                    <button><i class="fa-solid fa-circle-question"></i></button>
                 </div>
                 
-                <div class="header-center">
-                    <div class="session-id-pill" id="round-id-display">#365586</div>
+                <div class="ruby-session">
+                    <span class="session-label">PHIÊN</span>
+                    <span class="session-number" id="round-id-display">#000000</span>
                 </div>
 
-                <div class="header-right">
-                    <button class="icon-btn-round" id="btn-bxh"><i class="fa-solid fa-trophy"></i></button>
-                    <button class="icon-btn-round"><i class="fa-solid fa-comments"></i></button>
-                    <button class="icon-btn-round" id="btn-close-game"><i class="fa-solid fa-xmark"></i></button>
+                <div class="header-tools right">
+                    <button id="btn-bxh"><i class="fa-solid fa-trophy"></i></button>
+                    <button onclick="toggleChat()"><i class="fa-solid fa-comment-dots"></i></button>
                 </div>
             </div>
-            
-            <!-- Main Betting Area -->
-            <div class="bet-area">
+
+            <!-- Khu vực cược chính -->
+            <div class="betting-main">
                 
-                <!-- TÀI -->
-                <div class="bet-side" id="side-tai">
-                    <div class="users-count" id="users-tai">1869 <i class="fa-solid fa-users"></i></div>
-                    <div class="side-title">TÀI</div>
-                    <div class="side-total-box">
-                        <div class="side-total" id="tai-total-pool">873,724,316</div>
+                <!-- Cửa TÀI -->
+                <div class="bet-panel tai" id="side-tai">
+                    <div class="panel-header">
+                        <span class="user-count"><i class="fa-solid fa-user"></i> <span id="users-tai">0</span></span>
                     </div>
-                    <div class="my-bets-container">
-                        <div class="my-confirmed-bet" id="my-bet-tai">0</div>
-                        <div class="my-pending-bet" id="pending-bet-tai">20,000,000</div>
+                    <div class="side-name">TÀI</div>
+                    <div class="pool-amount" id="tai-total-pool">0</div>
+                    <div class="my-bet-info">
+                        <div class="bet-label">ĐÃ CƯỢC</div>
+                        <div class="bet-val" id="my-bet-tai">0</div>
                     </div>
+                    <!-- Hiệu ứng thắng -->
+                    <div class="win-glow"></div>
                 </div>
 
-                <!-- CENTER (DICE) -->
-                <div class="center-circle" id="center-circle-area">
-                    <div id="countdown-timer" class="timer-text">16</div>
+                <!-- Vòng tròn trung tâm (Xúc xắc/Đồng hồ) -->
+                <div class="center-stage" id="center-circle-area">
+                    <div id="countdown-timer" class="ruby-timer">--</div>
                     
-                    <!-- 3D Dice Container -->
-                    <div class="dice-scene hidden" id="dice-scene">
+                    <div class="dice-box hidden" id="dice-scene">
                         <div class="dice-3d" id="dice-1">
                             <div class="face front"><span class="dot"></span></div>
-                            <div class="face back"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face right"><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face left"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face bottom"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face back"></div>
+                            <div class="face right"></div>
+                            <div class="face left"></div>
+                            <div class="face top"></div>
+                            <div class="face bottom"></div>
                         </div>
                         <div class="dice-3d" id="dice-2">
                             <div class="face front"><span class="dot"></span></div>
-                            <div class="face back"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face right"><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face left"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face bottom"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face back"></div>
+                            <div class="face right"></div>
+                            <div class="face left"></div>
+                            <div class="face top"></div>
+                            <div class="face bottom"></div>
                         </div>
                         <div class="dice-3d" id="dice-3">
                             <div class="face front"><span class="dot"></span></div>
-                            <div class="face back"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face right"><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face left"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face top"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
-                            <div class="face bottom"><span class="dot"></span><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+                            <div class="face back"></div>
+                            <div class="face right"></div>
+                            <div class="face left"></div>
+                            <div class="face top"></div>
+                            <div class="face bottom"></div>
                         </div>
                     </div>
 
-                    <!-- BÁT NẶN -->
-                    <div id="bowl-cover" class="bowl hidden"></div>
+                    <div id="bowl-cover" class="ruby-bowl hidden"></div>
                 </div>
 
-                <!-- XỈU -->
-                <div class="bet-side" id="side-xiu">
-                    <div class="users-count" id="users-xiu">1907 <i class="fa-solid fa-users"></i></div>
-                    <div class="side-title">XỈU</div>
-                    <div class="side-total-box">
-                        <div class="side-total" id="xiu-total-pool">854,348,318</div>
+                <!-- Cửa XỈU -->
+                <div class="bet-panel xiu" id="side-xiu">
+                    <div class="panel-header">
+                        <span class="user-count"><i class="fa-solid fa-user"></i> <span id="users-xiu">0</span></span>
                     </div>
-                    <button class="btn-bet-small" id="btn-quick-bet-xiu">ĐẶT CƯỢC</button>
-                    <div class="hand-icon"><i class="fa-solid fa-hand-pointer"></i></div>
+                    <div class="side-name">XỈU</div>
+                    <div class="pool-amount" id="xiu-total-pool">0</div>
+                    <div class="my-bet-info">
+                        <div class="bet-label">ĐÃ CƯỢC</div>
+                        <div class="bet-val" id="my-bet-xiu">0</div>
+                    </div>
+                    <div class="win-glow"></div>
                 </div>
 
             </div>
 
-            <!-- History Dots (Chấm tròn dưới) -->
-            <div class="history-dots-bar" id="history-dots-container"></div>
+            <!-- Soi cầu (Dưới bàn) -->
+            <div class="trend-bar" id="history-dots-container">
+                <!-- Dots added by JS -->
+            </div>
 
-            <!-- Chips Area -->
-            <div class="chips-container-wrapper">
-                <div class="chips-container" id="chips-container">
-                    <button class="chip-rect" data-val="1000">1K</button>
-                    <button class="chip-rect" data-val="10000">10K</button>
-                    <button class="chip-rect" data-val="50000">50K</button>
-                    <button class="chip-rect" data-val="100000">100K</button>
-                    <button class="chip-rect" data-val="500000">500K</button>
-                    <button class="chip-rect" data-val="5000000">5M</button>
-                    <button class="chip-rect" data-val="10000000">10M</button>
-                    <button class="chip-rect" data-val="50000000">50M</button>
+            <!-- Khu vực chọn tiền (Chips) -->
+            <div class="chips-row" id="chips-container">
+                <button class="ruby-chip" data-val="1000">1K</button>
+                <button class="ruby-chip" data-val="10000">10K</button>
+                <button class="ruby-chip" data-val="50000">50K</button>
+                <button class="ruby-chip" data-val="100000">100K</button>
+                <button class="ruby-chip" data-val="500000">500K</button>
+                <button class="ruby-chip" data-val="5000000">5M</button>
+                <button class="ruby-chip" data-val="10000000">10M</button>
+                <button class="ruby-chip" data-val="50000000">50M</button>
+            </div>
+
+            <!-- Nút chức năng -->
+            <div class="ruby-actions">
+                <div class="balance-pill">
+                    <i class="fa-solid fa-coins"></i> <span id="current-balance">0</span>
+                </div>
+                <div class="action-btns">
+                    <button id="btn-allin" class="btn-ruby secondary">TẤT TAY</button>
+                    <button id="btn-confirm" class="btn-ruby primary">ĐẶT CƯỢC</button>
+                    <button id="btn-cancel" class="btn-ruby danger">HỦY</button>
                 </div>
             </div>
-
-            <!-- Actions Area -->
-            <div class="actions-container">
-                <button class="btn-pill btn-allin" id="btn-allin">ALL-IN</button>
-                <button class="btn-pill btn-confirm" id="btn-confirm">ĐẶT CƯỢC</button>
-                <button class="btn-pill btn-cancel" id="btn-cancel">HỦY</button>
-            </div>
-
         </div>
     </div>
 
+    <!-- HỆ THỐNG CHAT (MỚI) -->
+    <div class="ruby-chat" id="chat-container">
+        <div class="chat-head" onclick="toggleChat()">
+            <span><i class="fa-solid fa-comments"></i> TÁN GẪU</span>
+            <i class="fa-solid fa-chevron-up toggle-icon"></i>
         </div>
-    </div>
-
-    <!-- MODAL SOI CẦU -->
-    <div id="modal-soicau" class="modal-overlay hidden">
-        <div class="modal-content premium-modal">
-            <button class="close-modal-btn" id="btn-close-soicau"><i class="fa-solid fa-xmark"></i></button>
-            <h2 class="modal-title">THỐNG KÊ TÀI XỈU</h2>
-            
-            <div class="chart-container">
-                <canvas id="canvas-tong" width="800" height="200"></canvas>
-            </div>
-            
-            <div class="chart-container mt-10">
-                <canvas id="canvas-xucxac" width="800" height="150"></canvas>
+        <div class="chat-body">
+            <div class="chat-list" id="chat-messages"></div>
+            <div class="chat-input-wrap">
+                <input type="text" id="chat-input" placeholder="Nhập tin nhắn...">
+                <button id="btn-send-chat"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>
     </div>
 
-    <!-- MODAL BẢNG XẾP HẠNG -->
-    <div id="modal-bxh" class="modal-overlay hidden">
-        <div class="modal-content premium-modal rank-modal">
-            <button class="close-modal-btn" id="btn-close-bxh"><i class="fa-solid fa-xmark"></i></button>
-            <h2 class="modal-title">BẢNG XẾP HẠNG THẮNG LỚN</h2>
-            
-            <div class="rank-list-header">
-                <span>TOP</span>
-                <span>TÀI KHOẢN</span>
-                <span>TIỀN THẮNG</span>
-            </div>
-            <div class="rank-list" id="rank-list-container">
-                <!-- Data will be injected by JS -->
-            </div>
-        </div>
-    </div>
-
-    <!-- KÊNH CHAT TÀI XỈU (DẠNG ICON) -->
-    <div id="chat-container" class="chat-container" onclick="if(!this.classList.contains('active')) toggleChat()">
-        <div class="chat-header">
-            <span class="chat-title-text"><i class="fa-solid fa-comments"></i> KÊNH CHAT</span>
-            <i class="fa-solid fa-comment-dots chat-icon-only"></i>
-            <button class="chat-toggle-btn" onclick="event.stopPropagation(); toggleChat()"><i class="fa-solid fa-xmark"></i></button>
-        </div>
-        <div class="chat-messages" id="chat-messages">
-            <div class="chat-item system">Chào mừng sếp đến với kênh chat!</div>
-        </div>
-        <div class="chat-input-area" onclick="event.stopPropagation()">
-            <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." maxlength="50">
-            <button id="btn-send-chat"><i class="fa-solid fa-paper-plane"></i></button>
-        </div>
-    </div>
-
-    <!-- Custom Notification Modal -->
-    <div id="custom-alert-modal" class="modal-overlay hidden">
-        <div class="modal-content premium-alert">
-            <h3 id="alert-title">THÔNG BÁO</h3>
-            <p id="alert-message">Nội dung thông báo ở đây...</p>
-            <button class="alert-ok-btn" onclick="closeAlert()">ĐÃ HIỂU</button>
+    <!-- Modals -->
+    <div id="modal-bxh" class="ruby-modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">BẢNG XẾP HẠNG <i class="fa-solid fa-xmark" id="btn-close-bxh"></i></div>
+            <div class="rank-list" id="rank-list-container"></div>
         </div>
     </div>
 
