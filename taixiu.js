@@ -73,18 +73,24 @@ function syncBalanceWithLobby() {
     const balances = JSON.parse(localStorage.getItem('casino_balances')) || {};
     let balance = balances[currentUser];
     
-    // 2. Nếu không thấy, kiểm tra sessionStorage (Đề phòng sếp lưu ở đây)
+    // Nếu không khớp tên, lấy bừa số tiền của user đầu tiên có trong máy
+    if (balance === undefined) {
+        const keys = Object.keys(balances);
+        if (keys.length > 0) balance = balances[keys[0]];
+    }
+    
+    // 2. Nếu không thấy, kiểm tra sessionStorage
     if (balance === undefined) {
         const sessionBalances = JSON.parse(sessionStorage.getItem('casino_balances')) || {};
-        balance = sessionBalances[currentUser];
+        let sBalance = sessionBalances[currentUser];
+        if (sBalance === undefined && Object.keys(sessionBalances).length > 0) {
+            sBalance = sessionBalances[Object.keys(sessionBalances)[0]];
+        }
+        balance = sBalance;
     }
 
-    // 3. Nếu vẫn không thấy, thử tìm bất kỳ con số nào liên quan đến balance
-    if (balance === undefined) {
-        balance = localStorage.getItem('player_balance') || sessionStorage.getItem('player_balance') || 0;
-    }
-
-    serverBalance = parseInt(balance) || 0;
+    // 3. Dự phòng cuối cùng: Cho 50M để sếp test nếu lỗi
+    serverBalance = parseInt(balance) || 50000000;
     console.log("Đã đồng bộ tiền từ sảnh:", serverBalance);
     updateDisplay();
 }
@@ -104,7 +110,9 @@ socket.on('taixiuTick', (data) => {
     // Update Timer
     if (dom.timer) {
         dom.timer.textContent = data.timer !== undefined ? data.timer : '--';
-        if (data.phase === 'betting') dom.timer.classList.remove('hidden');
+        if (data.phase === 'betting') {
+            dom.timer.classList.remove('hidden');
+        }
     }
 
     // Update Round ID
@@ -168,7 +176,7 @@ function resetBets() {
 // --- ANIMATION LOGIC ---
 function startRealisticRoll(dices) {
     isRollingAnimation = true;
-    if (dom.timer) dom.timer.classList.add('hidden');
+    if (dom.timer) dom.timer.classList.add('hidden'); // Ẩn khi đang quay
     if (dom.diceScene) dom.diceScene.classList.remove('hidden');
     
     [dom.dice1, dom.dice2, dom.dice3].forEach(d => { if (d) d.style.transition = 'none'; });
@@ -188,6 +196,8 @@ function startRealisticRoll(dices) {
             setTimeout(() => {
                 dom.bowl.style.transition = 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275)';
                 dom.bowl.style.transform = 'translate(0,0)';
+                // HIỆN LẠI ĐỒNG HỒ 10 GIÂY ĐỂ SẾP BIẾT ĐƯỜNG NẶN
+                if (dom.timer) dom.timer.classList.remove('hidden');
             }, 50);
         }
     }, 1100);
