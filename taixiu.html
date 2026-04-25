@@ -7,7 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="taixiu.css?v=99">
+    <link rel="stylesheet" href="taixiu.css?v=100">
 </head>
 <body class="ruby-theme">
 
@@ -138,13 +138,15 @@
     <!-- HỆ THỐNG CHAT (MỚI) -->
     <div class="ruby-chat" id="chat-container">
         <div class="chat-head" onclick="toggleChat()">
-            <span><i class="fa-solid fa-comments"></i> TÁN GẪU</span>
-            <i class="fa-solid fa-chevron-up toggle-icon"></i>
+            <i class="fa-solid fa-comments"></i> KÊNH CHAT
+            <span class="chat-toggle-icon"><i class="fa-solid fa-chevron-up"></i></span>
         </div>
         <div class="chat-body">
-            <div class="chat-list" id="chat-messages"></div>
-            <div class="chat-input-wrap">
-                <input type="text" id="chat-input" placeholder="Nhập tin nhắn...">
+            <div class="chat-messages" id="chat-messages">
+                <div class="chat-msg system">Hệ thống: Chào mừng sếp đến với kênh chat!</div>
+            </div>
+            <div class="chat-input-area">
+                <input type="text" id="chat-input" placeholder="Nhập tin nhắn..." maxlength="100">
                 <button id="btn-send-chat"><i class="fa-solid fa-paper-plane"></i></button>
             </div>
         </div>

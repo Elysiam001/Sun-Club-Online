@@ -69,37 +69,52 @@ window.addEventListener('load', () => {
 });
 
 function syncBalanceWithLobby() {
-    // 1. Kiểm tra localStorage (Key chuẩn của cardgames.js)
-    const balances = JSON.parse(localStorage.getItem('casino_balances')) || {};
-    let balance = balances[currentUser];
-    
-    // Nếu không khớp tên, lấy bừa số tiền của user đầu tiên có trong máy
-    if (balance === undefined) {
-        const keys = Object.keys(balances);
-        if (keys.length > 0) balance = balances[keys[0]];
-    }
-    
-    // 2. Nếu không thấy, kiểm tra sessionStorage
-    if (balance === undefined) {
-        const sessionBalances = JSON.parse(sessionStorage.getItem('casino_balances')) || {};
-        let sBalance = sessionBalances[currentUser];
-        if (sBalance === undefined && Object.keys(sessionBalances).length > 0) {
-            sBalance = sessionBalances[Object.keys(sessionBalances)[0]];
+    try {
+        let balance = 0;
+        
+        // 1. Kiểm tra localStorage
+        try {
+            const balances = JSON.parse(localStorage.getItem('casino_balances')) || {};
+            if (balances[currentUser] !== undefined) balance = balances[currentUser];
+            else {
+                const keys = Object.keys(balances);
+                if (keys.length > 0) balance = balances[keys[0]];
+            }
+        } catch(e) { console.error("Lỗi đọc localStorage:", e); }
+        
+        // 2. Nếu không thấy, kiểm tra sessionStorage
+        if (!balance) {
+            try {
+                const sessionBalances = JSON.parse(sessionStorage.getItem('casino_balances')) || {};
+                if (sessionBalances[currentUser] !== undefined) balance = sessionBalances[currentUser];
+                else {
+                    const keys = Object.keys(sessionBalances);
+                    if (keys.length > 0) balance = sessionBalances[keys[0]];
+                }
+            } catch(e) { console.error("Lỗi đọc sessionStorage:", e); }
         }
-        balance = sBalance;
-    }
 
-    // 3. Dự phòng cuối cùng: Cho 50M để sếp test nếu lỗi
-    serverBalance = parseInt(balance) || 50000000;
-    console.log("Đã đồng bộ tiền từ sảnh:", serverBalance);
-    updateDisplay();
+        // 3. Dự phòng cuối cùng: Cho 50M
+        serverBalance = parseInt(balance) || 50000000;
+        console.log("Đã đồng bộ tiền từ sảnh:", serverBalance);
+        
+        // CẬP NHẬT TRỰC TIẾP LÊN DOM ĐỂ CHẮC CHẮN NÓ CHẠY
+        if (dom.balance) dom.balance.innerHTML = `<span style="color:#00ff00">${serverBalance.toLocaleString('vi-VN')}</span>`;
+        updateDisplay();
+    } catch (e) {
+        console.error("Lỗi đồng bộ tiền:", e);
+        serverBalance = 99999999; // Báo lỗi thì cho 99 củ
+        if (dom.balance) dom.balance.textContent = serverBalance.toLocaleString('vi-VN');
+    }
 }
 
 // --- SOCKET EVENTS ---
-socket.on('balanceUpdate', (balance) => {
-    // Nếu server có dữ liệu mới thì cập nhật, không thì giữ nguyên từ localStorage
-    if (balance > 0) {
-        serverBalance = balance;
+socket.on('balanceUpdate', (data) => {
+    if (data && data.newBalance !== undefined) {
+        serverBalance = data.newBalance;
+        updateDisplay();
+    } else if (typeof data === 'number') {
+        serverBalance = data;
         updateDisplay();
     }
 });
