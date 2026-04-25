@@ -237,6 +237,16 @@ io.on('connection', (socket) => {
         }
     });
 
+    // --- CHAT TÀI XỈU ---
+    socket.on('chatMessage', ({ username, message }) => {
+        if (!message || message.trim() === '') return;
+        io.emit('chatMessage', { 
+            username, 
+            message: message.substring(0, 50),
+            time: new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })
+        });
+    });
+
     socket.on('disconnect', () => {});
 
     // --- LOGIC TÀI XỈU TẬP TRUNG (SERVER-SIDE) ---
@@ -247,6 +257,7 @@ io.on('connection', (socket) => {
 
 // --- QUẢN LÝ GAME TÀI XỈU (VÒNG LẶP VĨNH CỬU) ---
 const taixiuState = {
+    sessionId: 934042,
     timer: 25,
     phase: 'betting',
     dices: [1, 2, 3],
@@ -281,6 +292,15 @@ function taixiuLoop() {
             // Tính toán người thắng ngay khi có kết quả
             const total = taixiuState.dices[0] + taixiuState.dices[1] + taixiuState.dices[2];
             calculateWinners(total >= 11, total <= 10, total);
+            
+            // Lưu lịch sử
+            taixiuState.history.push({ 
+                dice: taixiuState.dices, 
+                total, 
+                result: total >= 11 ? 'tai' : 'xiu' 
+            });
+            if (taixiuState.history.length > 20) taixiuState.history.shift();
+
             // Trả thưởng luôn cho nóng!
             executePayouts();
         }
@@ -288,6 +308,7 @@ function taixiuLoop() {
         if (taixiuState.timer <= 0) {
             taixiuState.phase = 'betting';
             taixiuState.timer = 25; // Thời gian cược 25 giây
+            taixiuState.sessionId++; // Tăng phiên cược mới
             
             // Reset số liệu ảo ván mới (Bắt đầu từ con số nhỏ)
             taixiuState.fakeTai = { users: 100 + Math.floor(Math.random() * 200), pool: Math.floor(Math.random() * 50) * 1000000 };
@@ -302,13 +323,15 @@ function taixiuLoop() {
 
     // Gửi dữ liệu đầy đủ cho Client
     io.emit('taixiuTick', {
+        sessionId: taixiuState.sessionId,
         timer: taixiuState.timer,
         phase: taixiuState.phase,
         totalPool: taixiuState.totalPool,
         totalUsers: taixiuState.totalUsers,
         fakeTai: taixiuState.fakeTai,
         fakeXiu: taixiuState.fakeXiu,
-        dices: taixiuState.dices
+        dices: taixiuState.dices,
+        history: taixiuState.history
     });
 }
 

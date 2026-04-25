@@ -23,7 +23,8 @@ const dom = {
     balance: null, pTai: null, pXiu: null, mTai: null, mXiu: null,
     uT: null, uX: null, poolT: null, poolX: null,
     timer: null, diceScene: null, bowl: null,
-    dice1: null, dice2: null, dice3: null, centerCircle: null
+    dice1: null, dice2: null, dice3: null, centerCircle: null,
+    roundId: null, chatContainer: null, historyContainer: null
 };
 
 function initDOMCache() {
@@ -43,6 +44,9 @@ function initDOMCache() {
     dom.dice2 = document.getElementById('dice-2');
     dom.dice3 = document.getElementById('dice-3');
     dom.centerCircle = document.getElementById('center-circle-area');
+    dom.roundId = document.getElementById('round-id-display');
+    dom.chatContainer = document.getElementById('chat-container');
+    dom.historyContainer = document.getElementById('history-dots-container');
 }
 
 // Initialize on Load
@@ -89,7 +93,14 @@ setInterval(updateSmoothStats, 100);
 
 socket.on('taixiuTick', (data) => {
     if (dom.timer) dom.timer.textContent = data.timer;
+    if (dom.roundId && data.sessionId) dom.roundId.textContent = `#${data.sessionId}`;
     
+    if (data.history && dom.historyContainer) {
+        dom.historyContainer.innerHTML = data.history.map(h => 
+            `<div class="dot-${h.result}"></div>`
+        ).join('');
+    }
+
     if (data.fakeTai && data.fakeXiu && data.totalPool) {
         targetStats.taiUsers = data.fakeTai.users + data.totalUsers.tai;
         targetStats.xiuUsers = data.fakeXiu.users + data.totalUsers.xiu;
@@ -173,6 +184,11 @@ function startRealisticRoll(dices) {
     }, 1100);
 
     setTimeout(() => { isRollingAnimation = false; currentPhase = 'revealing'; }, 2500);
+
+    // Tự động mở bát sau 8 giây nếu sếp không nặn
+    setTimeout(() => {
+        if (currentPhase === 'revealing') finalizeResult();
+    }, 10000);
 }
 
 function getDiceTransform(val) {
@@ -207,6 +223,14 @@ function showFloatingResult(side, amount, isWin) {
     p.appendChild(el);
     setTimeout(() => el.remove(), 2000);
 }
+
+// Chat functions
+function toggleChat() {
+    if (dom.chatContainer) {
+        dom.chatContainer.classList.toggle('active');
+    }
+}
+window.toggleChat = toggleChat; // Export to global for inline onclick
 
 // Drag logic
 let isDragging = false, startX = 0, startY = 0, currX = 0, currY = 0;
@@ -283,16 +307,38 @@ function createGoldExplosion() {
 }
 
 // Chat
-function addMsg(user, msg) {
+function addMsg(user, msg, isSystem = false) {
     const a = document.getElementById('chat-messages');
     if (a) {
-        a.insertAdjacentHTML('beforeend', `<div class="chat-item"><span class="username">${user}:</span> ${msg}</div>`);
+        const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+        const nameDisplay = user === currentUser ? 'Bạn' : (user.length > 5 ? user.substring(0, 5) + '...' : user);
+        const chatClass = isSystem ? 'system' : (user === currentUser ? 'me' : '');
+        
+        a.insertAdjacentHTML('beforeend', `
+            <div class="chat-item ${chatClass}">
+                <span class="chat-time">${time}</span>
+                <span class="username">${nameDisplay}:</span> 
+                <span class="msg-text">${msg}</span>
+            </div>
+        `);
         a.scrollTop = a.scrollHeight;
     }
 }
+
 document.getElementById('btn-send-chat').addEventListener('click', () => {
     const i = document.getElementById('chat-input');
-    if (i && i.value.trim()) { addMsg(currentUser, i.value.trim()); i.value = ''; }
+    if (i && i.value.trim()) { 
+        socket.emit('chatMessage', { username: currentUser, message: i.value.trim() });
+        i.value = ''; 
+    }
+});
+
+document.getElementById('chat-input').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') document.getElementById('btn-send-chat').click();
+});
+
+socket.on('chatMessage', (data) => {
+    addMsg(data.username, data.message);
 });
 
 // Modals
