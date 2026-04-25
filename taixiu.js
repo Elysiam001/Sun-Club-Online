@@ -92,7 +92,12 @@ function updateSmoothStats() {
 setInterval(updateSmoothStats, 100);
 
 socket.on('taixiuTick', (data) => {
-    if (dom.timer) dom.timer.textContent = data.timer;
+    if (!data) return;
+    if (dom.timer) {
+        dom.timer.textContent = data.timer !== undefined ? data.timer : '--';
+        // Đảm bảo timer luôn hiện nếu đang ở phase betting
+        if (data.phase === 'betting') dom.timer.classList.remove('hidden');
+    }
     if (dom.roundId && data.sessionId) dom.roundId.textContent = `#${data.sessionId}`;
     
     if (data.history && dom.historyContainer) {
@@ -102,13 +107,13 @@ socket.on('taixiuTick', (data) => {
     }
 
     if (data.fakeTai && data.fakeXiu && data.totalPool) {
-        targetStats.taiUsers = data.fakeTai.users + data.totalUsers.tai;
-        targetStats.xiuUsers = data.fakeXiu.users + data.totalUsers.xiu;
-        targetStats.taiPool = data.fakeTai.pool + data.totalPool.tai;
-        targetStats.xiuPool = data.fakeXiu.pool + data.totalPool.xiu;
+        targetStats.taiUsers = (data.fakeTai.users || 0) + (data.totalUsers.tai || 0);
+        targetStats.xiuUsers = (data.fakeXiu.users || 0) + (data.totalUsers.xiu || 0);
+        targetStats.taiPool = (data.fakeTai.pool || 0) + (data.totalPool.tai || 0);
+        targetStats.xiuPool = (data.fakeXiu.pool || 0) + (data.totalPool.xiu || 0);
     }
 
-    if (data.phase !== lastPhase) {
+    if (data.phase && data.phase !== lastPhase) {
         lastPhase = data.phase;
         if (data.phase === 'betting') {
             currentPhase = 'betting';
@@ -119,9 +124,9 @@ socket.on('taixiuTick', (data) => {
             resetBets();
         } else if (data.phase === 'result') {
             currentPhase = 'result';
-            currentResultDices = data.dices;
-            currentResultTotal = data.dices[0] + data.dices[1] + data.dices[2];
-            startRealisticRoll(data.dices);
+            currentResultDices = data.dices || [1, 2, 3];
+            currentResultTotal = currentResultDices[0] + currentResultDices[1] + currentResultDices[2];
+            startRealisticRoll(currentResultDices);
         }
     }
 });
