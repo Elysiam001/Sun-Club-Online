@@ -227,37 +227,48 @@ body.ruby-theme::after {
 .btn-ruby:hover { filter: brightness(1.2); transform: translateY(-3px); }
 
 /* --- DICE & BOWL REALISTIC 3D --- */
-.dice-box { width: 120px; height: 120px; position: relative; z-index: 10; perspective: 600px; }
-.dice-3d { 
-    width: 40px; height: 40px; 
-    position: absolute; 
-    transform-style: preserve-3d; 
-    transition: transform 1.5s cubic-bezier(0.1, 0.8, 0.2, 1);
+.dice-box { 
+    width: 150px; height: 150px; 
+    position: relative; 
+    z-index: 10; 
+    perspective: 1000px; /* Tăng phối cảnh để khối hộp rõ hơn */
+    display: flex;
+    justify-content: center;
+    align-items: center;
 }
 
-#dice-1 { top: 15px; left: 40px; }
-#dice-2 { top: 65px; left: 15px; }
-#dice-3 { top: 65px; left: 65px; }
+.dice-3d { 
+    width: 45px; height: 45px; 
+    position: absolute; 
+    transform-style: preserve-3d !important; /* Quan trọng nhất để hiện khối hộp */
+    transition: transform 1.5s cubic-bezier(0.1, 0.8, 0.2, 1);
+    transform: rotateX(20deg) rotateY(20deg); /* Mặc định xoay nhẹ để nhìn rõ 3D */
+}
+
+#dice-1 { top: 20px; left: 52px; }
+#dice-2 { top: 75px; left: 25px; }
+#dice-3 { top: 75px; left: 80px; }
 
 .face { 
     position: absolute; 
-    width: 40px; height: 40px; 
-    background: linear-gradient(145deg, #ff4d4d, #b30000); 
-    border: 1px solid rgba(0,0,0,0.2); 
-    border-radius: 6px; 
+    width: 45px; height: 45px; 
+    background: linear-gradient(145deg, #ff0000, #990000); /* Đỏ sậm Ruby */
+    border: 1px solid rgba(255,255,255,0.2); 
+    border-radius: 8px; 
     display: grid;
     grid-template: repeat(3, 1fr) / repeat(3, 1fr);
-    padding: 5px;
-    box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    padding: 6px;
+    box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+    backface-visibility: visible; /* Cho phép nhìn thấy các mặt phía sau nếu cần */
 }
 
-/* Face Orientations */
-.front  { transform: rotateY(  0deg) translateZ(20px); }
-.back   { transform: rotateY(180deg) translateZ(20px); }
-.right  { transform: rotateY( 90deg) translateZ(20px); }
-.left   { transform: rotateY(-90deg) translateZ(20px); }
-.top    { transform: rotateX( 90deg) translateZ(20px); }
-.bottom { transform: rotateX(-90deg) translateZ(20px); }
+/* Face Orientations - Căn chỉnh chuẩn tâm */
+.front  { transform: rotateY(  0deg) translateZ(22.5px); }
+.back   { transform: rotateY(180deg) translateZ(22.5px); }
+.right  { transform: rotateY( 90deg) translateZ(22.5px); }
+.left   { transform: rotateY(-90deg) translateZ(22.5px); }
+.top    { transform: rotateX( 90deg) translateZ(22.5px); }
+.bottom { transform: rotateX(-90deg) translateZ(22.5px); }
 
 /* Dot Styling */
 [class^="dot-"] { 

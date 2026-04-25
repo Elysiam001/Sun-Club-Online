@@ -61,6 +61,11 @@ window.addEventListener('load', () => {
     
     // Đồng bộ tiền với sảnh ngoài
     syncBalanceWithLobby();
+    
+    // Tự động đồng bộ mỗi 2 giây nếu tiền bằng 0 (đề phòng cache)
+    setInterval(() => {
+        if (serverBalance === 0) syncBalanceWithLobby();
+    }, 2000);
 });
 
 function syncBalanceWithLobby() {
