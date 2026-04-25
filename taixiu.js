@@ -71,39 +71,57 @@ window.addEventListener('load', () => {
 function syncBalanceWithLobby() {
     try {
         let balance = 0;
-        
-        // 1. Kiểm tra localStorage
+        let foundBalance = false;
+
+        // 0. Cách chuẩn nhất: Đọc thẳng từ giao diện sảnh ngoài (Lobby) nếu đang chạy trong iframe
         try {
-            const balances = JSON.parse(localStorage.getItem('casino_balances')) || {};
-            if (balances[currentUser] !== undefined) balance = balances[currentUser];
-            else {
-                const keys = Object.keys(balances);
-                if (keys.length > 0) balance = balances[keys[0]];
-            }
-        } catch(e) { console.error("Lỗi đọc localStorage:", e); }
-        
-        // 2. Nếu không thấy, kiểm tra sessionStorage
-        if (!balance) {
-            try {
-                const sessionBalances = JSON.parse(sessionStorage.getItem('casino_balances')) || {};
-                if (sessionBalances[currentUser] !== undefined) balance = sessionBalances[currentUser];
-                else {
-                    const keys = Object.keys(sessionBalances);
-                    if (keys.length > 0) balance = sessionBalances[keys[0]];
+            if (window.parent && window.parent !== window) {
+                const parentEl = window.parent.document.getElementById('player-balance');
+                if (parentEl) {
+                    const textVal = parentEl.textContent;
+                    // Lọc bỏ mọi ký tự không phải số (dấu phẩy, chấm, chữ VNĐ)
+                    const parsed = parseInt(textVal.replace(/[^0-9]/g, ''));
+                    if (!isNaN(parsed)) {
+                        balance = parsed;
+                        foundBalance = true;
+                        console.log("Đã bế tiền trực tiếp từ sảnh vào:", balance);
+                    }
                 }
-            } catch(e) { console.error("Lỗi đọc sessionStorage:", e); }
+            }
+        } catch(e) { console.warn("Không đọc được từ iframe parent:", e); }
+
+        // 1. Kiểm tra localStorage (Nếu cách 0 thất bại)
+        if (!foundBalance) {
+            try {
+                const balances = JSON.parse(localStorage.getItem('casino_balances')) || {};
+                if (balances[currentUser] !== undefined) balance = balances[currentUser];
+                else {
+                    const keys = Object.keys(balances);
+                    if (keys.length > 0) balance = balances[keys[0]];
+                }
+            } catch(e) { console.error("Lỗi đọc localStorage:", e); }
+            
+            // 2. Nếu không thấy, kiểm tra sessionStorage
+            if (!balance) {
+                try {
+                    const sessionBalances = JSON.parse(sessionStorage.getItem('casino_balances')) || {};
+                    if (sessionBalances[currentUser] !== undefined) balance = sessionBalances[currentUser];
+                    else {
+                        const keys = Object.keys(sessionBalances);
+                        if (keys.length > 0) balance = sessionBalances[keys[0]];
+                    }
+                } catch(e) { console.error("Lỗi đọc sessionStorage:", e); }
+            }
         }
 
-        // 3. Dự phòng cuối cùng: Cho 50M
         serverBalance = parseInt(balance) || 50000000;
-        console.log("Đã đồng bộ tiền từ sảnh:", serverBalance);
         
-        // CẬP NHẬT TRỰC TIẾP LÊN DOM ĐỂ CHẮC CHẮN NÓ CHẠY
+        // CẬP NHẬT TRỰC TIẾP LÊN DOM 
         if (dom.balance) dom.balance.innerHTML = `<span style="color:#00ff00">${serverBalance.toLocaleString('vi-VN')}</span>`;
         updateDisplay();
     } catch (e) {
         console.error("Lỗi đồng bộ tiền:", e);
-        serverBalance = 99999999; // Báo lỗi thì cho 99 củ
+        serverBalance = 99999999; 
         if (dom.balance) dom.balance.textContent = serverBalance.toLocaleString('vi-VN');
     }
 }
